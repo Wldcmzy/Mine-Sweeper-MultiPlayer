@@ -1,11 +1,24 @@
-from lib2to3.pgen2.token import MINEQUAL
 import numpy as np
 from random import randint
-from typing import Tuple, Dict
-from colorrander import ColorRander
+from typing import Tuple, Dict, Optional
+from .colorrander import ColorRander
+from .config import (
+    DEFAULT_PART_SIZE, 
+    DEFAULT_COL_SIZE, 
+    DEFAULT_MOD, 
+    DEFAULT_PART_MINE_NUM, 
+    DEFAULT_ROW_SIZE, 
+    DEFAULT_SEED,
+)
 
 class ClearMine:
-    MINE = 9
+    '''
+    1.实例化对象后游戏自动开始
+    2.收到点击请求后调用click方法, 返回得分或错误信息
+    3.每次调用click方法后, 需要手动调用judge_win方法判断游戏是否结束
+    4.若游戏结束, 调用restart方法重开游戏
+    '''
+    MINE = 200
     CELLTYPE = np.int16
     Dir = tuple(zip(
         (-1, -1, -1,  0,  1,  1,  1,  0),
@@ -13,14 +26,16 @@ class ClearMine:
     ))
     def __init__(
         self, 
-        size_row : int = 1000, 
-        size_col : int = 1000,
-        part_size: int = 16, # 每一子块边长, 保证不要超过numpy.int16
-        part_mine_num : int = 48, # 每一子块的雷数, 保证不要超过子块大小
-        seed : int = 1437,
-        mod : int = 998244353,
+        size_row : int = DEFAULT_ROW_SIZE, 
+        size_col : int = DEFAULT_COL_SIZE,
+        part_size: int = DEFAULT_PART_SIZE, # 每一子块边长, 保证不要超过numpy.int16
+        part_mine_num : int = DEFAULT_PART_MINE_NUM, # 每一子块的雷数, 保证不要超过子块大小
+        seed : int = DEFAULT_SEED,
+        mod : int = DEFAULT_MOD,
     ) -> None:
         '''初始化'''
+
+        self.__score_counter = 0
 
         # 种子, 模数
         self.__seed, self.__mod = seed, mod
@@ -31,11 +46,14 @@ class ClearMine:
         self.cfg(size_row, size_col, part_mine_num)
         self.restart()
 
+    def judge_win(self) -> bool:
+        '''检查游戏是否结束'''
+        return self.__safe >= self.__safe_target
+
     def restart(self, change_game = False) -> None:
         '''重置游戏数据, 若参数change_game为True, 更换游戏种子'''
-        
-        # 已经扫开的非雷格子数量
-        self.__safe = 0 
+
+        self.__real_mine_num = 0
 
         # 随机颜色生成器, 用户编号
         self.__ColorRander = ColorRander()
@@ -52,11 +70,15 @@ class ClearMine:
         # 生成雷区地图
         self.__distribute()
 
+        # 已经扫开的非雷格子数量
+        self.__safe = 0 
+        self.__safe_target = self.__size_row * self.__size_col - self.__real_mine_num
+
     def cfg(self, new_row : int, new_col : int, new_mine_num : int) -> None:
         '''改变雷区大小、雷数等基础配置'''
         self.__size_row = new_row
         self.__size_col = new_col
-        self.__mine_num = new_mine_num
+        self.__part_mine_num = new_mine_num
 
     def __judgeEdge(self, x : int, y : int) -> bool:
         '''判断一个点是否超出雷区范围'''
@@ -80,8 +102,7 @@ class ClearMine:
 
     def __distribute(self) -> None:
         '''构造雷区, 对象的属性board和color在这里面定义/重置'''
-        print('pre')
-        sst = time.time()
+
         # 雷区地图
         self.__board = np.zeros([self.__size_row, self.__size_col], dtype = ClearMine.CELLTYPE)
         
@@ -107,7 +128,7 @@ class ClearMine:
             for j in range(0, self.__size_col, self.__part_size):
 
                 # 动态判断得到雷区子块形状以及雷的个数
-                row, col, num, tag = self.__part_size, self.__part_size, self.__mine_num, False 
+                row, col, num, tag = self.__part_size, self.__part_size, self.__part_mine_num, False 
                 if i + row > self.__size_row:
                     row = self.__size_row - i
                     tag = True
@@ -118,10 +139,9 @@ class ClearMine:
                     num = row * col * num // (self.__part_size * self.__part_size)
 
                 # 构造雷区子块
+                self.__real_mine_num += num
                 self.__board[i : i + row, j : j + col] = sub_block(row, col, num)
-        print(f'{time.time() - sst}')
-        print('ok')
-        sst = time.time()
+
         # 为雷区格子算数
         for i in range(self.__size_row):
             for j in range(self.__size_col):
@@ -131,28 +151,46 @@ class ClearMine:
                         if self.__judgeEdge(xx, yy) and self.__board[xx][yy] != ClearMine.MINE:
                             self.__board[xx][yy] += 1
                     
-        print(f'{time.time() - sst}')
 
 
-    def updateMask(self, x : int, y : int, color : int, F : bool = True) -> None:
+    def __updateMask(self, x : int, y : int, color : int, F : bool = True) -> None:
         '''扫雷的DFS部分'''
 
         if self.__color[x][y] == 0:
             self.__color[x][y] = color
             self.__safe += 1
+            self.__score_counter += 1
+        else:
+            return None
 
         if self.__board[x][y] == 0:
             for dir in ClearMine.Dir:
                 xx, yy = x + dir[0], y + dir[1]
                 if self.__judgeEdge(xx, yy) == False: continue
                 if self.__color[xx][yy] == 0: 
-                    self.updateMask(xx, yy, color, False)
+                    self.__updateMask(xx, yy, color, False)
         elif F == True:
             for dir in ClearMine.Dir:
                 xx, yy = x + dir[0], y + dir[1]
                 if self.__judgeEdge(xx, yy) == False: continue
                 if self.__color[xx][yy] == 0 and self.__board[xx][yy] == 0: 
-                    self.updateMask(xx, yy, color, False)
+                    self.__updateMask(xx, yy, color, False)
+
+    def click(self, x : int, y : int, color : int) -> int:
+        '''
+        用户点击事件, 正数代表得分, 负数代表一些问题:
+        -5: 越界, -2: 格子已经被扫开 -1: 点到雷
+        '''
+        if not self.__judgeEdge(x, y): return -5 # 越界
+        if self.__color[x][y] != 0: return -2   # 格子已经被扫开
+        if self.__board[x][y] == ClearMine.MINE: # 点到雷
+            self.__color[x][y] = color
+            return -1
+
+        self.__score_counter = 0
+        self.__updateMask(x, y, color)
+
+        return self.__score_counter
 
     def give_color(self, username : str) -> None:
         '''给新用户随机分配一个颜色'''
@@ -164,21 +202,21 @@ class ClearMine:
 
             self.__dict_number2color[iter] = self.__ColorRander.rand_color()
 
+    def get_user_color_num(self, username : str) -> Optional[int]:
+        '''根据用户名获取用户的颜色数字'''
+        if username not in self.__dict_user2number: return None
+        return self.__dict_user2number[username]
+
+    def get_user_color_str(self, color_id : int) -> Optional[str]:
+        '''根据颜色数字获取用户颜色字符串'''
+        if color_id not in self.__dict_number2color: return None
+        return self.__dict_number2color[color_id]
+
 if __name__ == '__main__':
     import time
-    def draw():
-        a = ClearMine()
-        cnt = 0
-        for i in range(a._ClearMine__size_row):
-            for j in range(a._ClearMine__size_col):
-                print(a._ClearMine__board[i][j], end = ' ')
-                if a._ClearMine__board[i][j] == 0: cnt += 1
-            print()
-        print('sum = %d  cnt0 = ' % (a._ClearMine__size_row * a._ClearMine__size_col) + str(cnt))
     def test():
         st = time.time()
         a = ClearMine()
         print(f'用时:{time.time() - st}s')
-    #draw()
-    test()
+    #test()
     
