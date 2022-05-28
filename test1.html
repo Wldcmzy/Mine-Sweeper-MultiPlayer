@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Clear “canvas”</title>
+</head>
+<body>
+    <canvas id="mycanv" width="800" height="800"></canvas>
+    <script>
+        var canv = document.getElementById('mycanv');
+        var ctx = canv.getContext('2d');
+        
+
+        var level = [9,9,1];
+
+        var g_arr = [];
+
+        var g_obj = {};
+        
+        var g_color = {block:'#369',mine:'#bbb',open:'#ddd',highlight:'#89f'};
+
+        var mine = ['💣', '🚩', '❔', '💥'];
+
+        var mine_arr = [];
+
+        var count = level[0]*level[1];
+
+        var mine_count = level[2];
+
+        for(let i=0;i<level[0];i++){
+            for(let j=0;j<level[1];j++){
+                let xy = j + '-' + i;
+                g_arr.push(xy);
+                g_obj[xy] = {mark:0,open:0};
+                drawBlock(xy,g_color.block);
+            }
+        }
+
+        setMine();
+
+        function setMine(){
+            mine_arr = g_arr.sort(()=>Math.random()-0.5).slice(0,level[2]);
+            mine_arr.forEach(n=>{
+                g_obj[n].mark=-1;
+                let around = getAround(n);
+                around.forEach(xy=>{
+                    if(g_obj[xy].mark!=-1)
+                        g_obj[xy].mark++;
+                });
+            })
+        }
+
+        //showInfo();
+
+        function showInfo(){
+            g_arr.forEach(n=>{
+                if(g_obj[n].mark==-1){
+                    drawBlock(n,g_color.mine);
+                    markText(n,mine[0]);
+                }else{
+                    markText(n,g_obj[n].mark);
+                }
+            })
+        }
+
+        function markText(xy,txt){
+            let [x,y] = xy.split('-').map(n=>n*50);
+            ctx.save();
+            ctx.font='15px Arial';
+            ctx.fillStyle='#fff';
+            ctx.textAlign='center';
+            ctx.textBaseline='middle';
+            ctx.fillText(txt,x+25,y+25);
+            ctx.restore();
+        }
+
+        function getAround(xy){
+            let [x,y] = xy.split('-').map(n=>n*1);
+            let around = [];
+            for(let i=-1;i<=1;i++){
+                for(let j=-1;j<=1;j++){
+                    let id = `${x+j}-${y+i}`;
+                    if(g_arr.includes(id)&&id!=xy)
+                        around.push(id);
+                }
+            }
+            return around;
+        }
+
+        function drawBlock(xy,c){
+            let w = 50,r=8,m=2;
+            let [x,y] = xy.split('-').map(n=>n*w);
+            ctx.save();
+            ctx.beginPath();
+            ctx.moveTo(x,y+r);
+            ctx.arcTo(x,y+w-m,x+w-m,y+w-m,r);
+            ctx.arcTo(x+w-m,y+w-m,x+w-m,y,r);
+            ctx.arcTo(x+w-m,y,x,y,r);
+            ctx.arcTo(x,y,x,y+w-m,r);
+            ctx.fillStyle = c;
+            ctx.fill();
+            ctx.restore();
+        }
+
+        canv.addEventListener('click',openBlock);
+        function openBlock(ev){
+            let x =~~(ev.offsetX/50);
+            let y =~~(ev.offsetY/50);
+            let xy = x + '-' + y;
+            if(g_obj[xy].open==0)
+                count -- ;
+            g_obj[xy].open=1;
+            drawBlock(xy,g_color.open);
+            markText(xy,g_obj[xy].mark);
+            if(g_obj[xy].mark==0){
+                dfszero(xy);
+            }else if(g_obj[xy].mark==-1){
+                count--;
+                mine_count--;
+                drawBlock(xy,g_color.mine);
+                markText(xy,mine[0]);
+                markText(xy,mine[3]);
+                alert("雷炸了！！！！！");
+            }
+            console.log(x,y);
+            checkOver();
+        }
+
+        function dfszero(xy){
+            let around = getAround(xy);
+            around.forEach(n=>{
+                if(g_obj[n].open==0){
+                    count --;
+                    g_obj[n].open=1;
+                    drawBlock(n,g_color.open);
+                    markText(n,g_obj[n].mark);
+                    if(g_obj[n].mark==0)
+                        dfszero(n);
+                }
+            })
+        }
+
+        function checkOver(){
+            let over = 0;
+            if(count == mine_count){
+                over = 1;
+                alert("胜利！！");
+            }  
+            return over;
+        }
+
+    </script>
+
+    <script src="https://cdn.socket.io/4.5.1/socket.io.js"></script>
+
+    <script>
+        (function(){
+            //连接socket io
+            var socket = io({'timeout': 5000,'connect timeout':5000});
+
+            //检查连接
+            if(socket!==undefined){
+                console.log('Connected to socket...')
+            }
+        })();
+
+    </script>
+
+</body>
+</html>
