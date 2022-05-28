@@ -12,7 +12,15 @@
     <script type="text/javascript" scr charset="utf-8">
         $(document).ready(function() {
             console.log('ready');
-            socket = io.connect('ws://' + document.domain + ':' + location.port + '/call');
+            socket = io.connect('ws://' + document.domain + ':' + location.port + '/call', {
+            reconnectionDelayMax: 10000,
+            auth: {
+                token: "123"
+            },
+            query: {
+                "my-key": "my-value"
+            }
+            });
             console.log('io ini');
             socket.on('connect', function() {
                 console.log('connect 连接');

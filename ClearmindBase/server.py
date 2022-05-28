@@ -1,7 +1,7 @@
 from .clearmine import ClearMine
 from typing import Tuple, Optional
 import threading
-
+import json
 
 class Server:
     def __init__(self) -> None:
@@ -21,21 +21,26 @@ class Server:
         self.__data_queue.append(message)
         self.__lock.release()
 
-    def __message_checker(self, data):
-        pass
-
-    def __auto_work(self) -> None:
-        while True:
-            message = self.get_message()
-            if message:
-                data, address = message
-                print('ok', data, address)
+    # def __message_checker(self, operation : str):
+    #     if operation == 'login': return 1
+    #     if operation == 'register': return 2
+    #     if operation == 'click': return 3
 
 
-    def working(self) -> None:
-        t = threading.Thread(target = self.__auto_work, name = 'working')
-        t.start()
+    # def __auto_work(self) -> None:
+    #     while True:
+    #         message = self.get_message()
+    #         if message:
+    #             data, address = message
+    #             data = json.loads()
+    #             op = self.__message_checker(data['type'])
+    #             pass
+                
 
-    # def test_restart(self):
-    #     self.__CM.restart(True)
+
+    # def working(self) -> None:
+    #     t = threading.Thread(target = self.__auto_work, name = 'working')
+    #     t.start()
+
+
 

@@ -29,6 +29,7 @@ class ColorRander:
         }
 
     def rand_color(self) -> str:
+        '''尽可能有区分度且不重复地随机得到一种颜色'''
         choosen_color, choosen_kind = 0, 0
 
         index = randint(0, self.__colors - 1)

@@ -21,7 +21,7 @@ def mine():
 
 @clearmind_blueprint.route('/login', methods=['GET', 'POST'])
 def login():
-    return redirect('/mine')
+    return render_template('/mine')
 
 
 

@@ -19,7 +19,7 @@ class ClearMine:
     3.每次调用click方法后, 需要手动调用judge_win方法判断游戏是否结束
     4.若游戏结束, 调用restart方法重开游戏
     '''
-    MINE = 200
+    MINE = 9
     CELLTYPE = np.int16
     Dir = tuple(zip(
         (-1, -1, -1,  0,  1,  1,  1,  0),
@@ -36,8 +36,6 @@ class ClearMine:
     ) -> None:
         '''初始化'''
 
-        self.__score_counter = 0
-
         # 种子, 模数
         self.__seed, self.__mod = seed, mod
 
@@ -53,9 +51,13 @@ class ClearMine:
 
     def restart(self, change_game = False) -> None:
         '''重置游戏数据, 若参数change_game为True, 更换游戏种子'''
-
         start_time = time.time()
+
+        # 统计真实雷数
         self.__real_mine_num = 0
+
+        # 时间戳
+        self.__timmer = 0
 
         # 点击历史
         self.__click_history = []
@@ -192,6 +194,7 @@ class ClearMine:
         if self.__color[x][y] != 0: return -2   # 格子已经被扫开
 
         self.__click_history.append((x, y))
+        self.__timmer += 1
 
         if self.__board[x][y] == ClearMine.MINE: # 点到雷
             self.__color[x][y] = color
@@ -226,11 +229,10 @@ class ClearMine:
         '''返回点击历史'''
         return self.__click_history
 
+    def get_timmer(self) -> int:
+        '''获取时间戳'''
+        return self.__timmer
+
 if __name__ == '__main__':
-    import time
-    def test():
-        st = time.time()
-        a = ClearMine()
-        print(f'用时:{time.time() - st}s')
-    #test()
+    pass
     
