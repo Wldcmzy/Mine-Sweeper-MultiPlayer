@@ -1,1 +1,1 @@
-from .clearmine import ClearMine
+from .server import Server

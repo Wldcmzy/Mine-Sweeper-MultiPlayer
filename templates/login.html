@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>T E S T</title>
+    <script src="http://code.jquery.com/jquery-3.4.1.js"></script>
+    <script src="https://cdn.socket.io/3.1.1/socket.io.js"></script>
+</head>
+<body>
+    <button class="A">send call</button>
+    <button class="B">fetch</button>
+    <script type="text/javascript" scr charset="utf-8">
+        $(document).ready(function() {
+            console.log('ready');
+            socket = io.connect('ws://' + document.domain + ':' + location.port + '/call');
+            console.log('io ini');
+            socket.on('connect', function() {
+                console.log('connect 连接');
+            });
+
+            $('.A').on('click', function(e){
+                console.log('emit A...')
+                socket.emit('A', 'ohhhhh');
+            })
+            
+            $('.B').on('click', function(e){
+                var headers = new Headers({
+                    "accept": "application/javascript" 
+                });
+                headers.append("accept", "application/xml");
+                headers.set("user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.92 Safari/537.36");
+                window.fetch('/login', {
+                    method: "GET",
+                    headers: headers,
+                    cache: 'no-cache',
+                    redirect : 'follow',
+                })
+                .then(res => console.log(res))
+            })
+        });
+    </script>
+</body>
+</html>

@@ -1,3 +1,4 @@
+import time
 import numpy as np
 from random import randint
 from typing import Tuple, Dict, Optional
@@ -53,6 +54,7 @@ class ClearMine:
     def restart(self, change_game = False) -> None:
         '''重置游戏数据, 若参数change_game为True, 更换游戏种子'''
 
+        start_time = time.time()
         self.__real_mine_num = 0
 
         # 随机颜色生成器, 用户编号
@@ -73,6 +75,8 @@ class ClearMine:
         # 已经扫开的非雷格子数量
         self.__safe = 0 
         self.__safe_target = self.__size_row * self.__size_col - self.__real_mine_num
+
+        print(f'Game restarted, use time: {time.time() - start_time}s')
 
     def cfg(self, new_row : int, new_col : int, new_mine_num : int) -> None:
         '''改变雷区大小、雷数等基础配置'''
