@@ -8,7 +8,7 @@ def connect():
 
 @clearmind_socketio.on('disconnect', namespace='/call')
 def disconnect():
-    print('G!  disconnected')
+    print('连接断开')
 
 @clearmind_socketio.on('A', namespace='/call')
 def _(msg):

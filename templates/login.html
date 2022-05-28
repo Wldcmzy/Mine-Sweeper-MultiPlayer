@@ -25,17 +25,24 @@
             
             $('.B').on('click', function(e){
                 var headers = new Headers({
-                    "accept": "application/javascript" 
+                    "accept": "application/javascript" ,
+                    "name" : "456",
+                    'data' : "123",
                 });
                 headers.append("accept", "application/xml");
                 headers.set("user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.92 Safari/537.36");
                 window.fetch('/login', {
-                    method: "GET",
+                    method: "POST",
                     headers: headers,
                     cache: 'no-cache',
                     redirect : 'follow',
                 })
-                .then(res => console.log(res))
+                .then(res => {
+                    console.log(res);
+                    if(res.redirected == true){
+
+                    }
+                })
             })
         });
     </script>

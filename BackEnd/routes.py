@@ -10,15 +10,16 @@ from flask import (
 clearmind_blueprint = Blueprint('main', __name__)
 
 
-@clearmind_blueprint.route('/', methods=['GET'])
+@clearmind_blueprint.route('/', methods=['GET', 'POST'])
 def index():
     return render_template('login.html')
 
-@clearmind_blueprint.route('/mine')
+@clearmind_blueprint.route('/mine', methods=['GET', 'POST'])
 def mine():
+    print(request.headers)
     return render_template('mine.html')
 
-@clearmind_blueprint.route('/login')
+@clearmind_blueprint.route('/login', methods=['GET', 'POST'])
 def login():
     return redirect('/mine')
 

@@ -36,6 +36,6 @@ class Server:
         t = threading.Thread(target = self.__auto_work, name = 'working')
         t.start()
 
-    def test_restart(self):
-        self.__CM.restart(True)
+    # def test_restart(self):
+    #     self.__CM.restart(True)
 

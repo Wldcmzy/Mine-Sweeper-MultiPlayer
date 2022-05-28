@@ -1,7 +1,7 @@
 import time
 import numpy as np
 from random import randint
-from typing import Tuple, Dict, Optional
+from typing import Tuple, Dict, Optional, List
 from .colorrander import ColorRander
 from .config import (
     DEFAULT_PART_SIZE, 
@@ -56,6 +56,9 @@ class ClearMine:
 
         start_time = time.time()
         self.__real_mine_num = 0
+
+        # 点击历史
+        self.__click_history = []
 
         # 随机颜色生成器, 用户编号
         self.__ColorRander = ColorRander()
@@ -187,6 +190,9 @@ class ClearMine:
         '''
         if not self.__judgeEdge(x, y): return -5 # 越界
         if self.__color[x][y] != 0: return -2   # 格子已经被扫开
+
+        self.__click_history.append((x, y))
+
         if self.__board[x][y] == ClearMine.MINE: # 点到雷
             self.__color[x][y] = color
             return -1
@@ -215,6 +221,10 @@ class ClearMine:
         '''根据颜色数字获取用户颜色字符串'''
         if color_id not in self.__dict_number2color: return None
         return self.__dict_number2color[color_id]
+
+    def get_click_history(self) -> List[Tuple[int, int]]:
+        '''返回点击历史'''
+        return self.__click_history
 
 if __name__ == '__main__':
     import time
