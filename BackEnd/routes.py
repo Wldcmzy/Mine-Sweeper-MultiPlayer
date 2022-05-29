@@ -5,6 +5,7 @@ from flask import (
     render_template,
     url_for,
     Blueprint,
+    make_response,
 )
 
 clearmind_blueprint = Blueprint('main', __name__)
@@ -17,11 +18,17 @@ def index():
 @clearmind_blueprint.route('/mine', methods=['GET', 'POST'])
 def mine():
     print(request.headers)
-    return render_template('mine.html')
+    res = make_response(render_template('mine.html'))
+    res.headers['cookie'] = 123456789
+    return res
 
 @clearmind_blueprint.route('/login', methods=['GET', 'POST'])
 def login():
     return render_template('/mine')
+
+@clearmind_blueprint.route('/wk', methods=['GET', 'POST'])
+def _():
+    return render_template('wk.html')
 
 
 

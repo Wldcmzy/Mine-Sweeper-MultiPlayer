@@ -107,6 +107,9 @@ class ClearMine:
         delta //= row_size
         y = delta % col_size
 
+        with open('detail.txt', 'a') as f:
+            f.write(str((x, y, self.__fib1, self.__delta)) + '\n')
+
         return x, y
 
     def __distribute(self) -> None:

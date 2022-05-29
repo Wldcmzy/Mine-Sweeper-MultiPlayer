@@ -1,8 +1,8 @@
 #!/bin/env python
 from flask import Flask
-from BackEnd.objects import clearmind_socketio, login_manager
+from BackEnd.objects import clearmind_socketio
 from BackEnd.routes import clearmind_blueprint
-from flask_login import LoginManager
+from flask_cors import CORS
 
 
 def create_app(debug = True):
@@ -11,8 +11,7 @@ def create_app(debug = True):
     app.config['SECRET_KEY'] = 'clearmind'
     app.register_blueprint(clearmind_blueprint)
     clearmind_socketio.init_app(app)
-    # login_manager.init_app(app)
-    # login_manager.login_view = 'login'
+    CORS(app, supports_credentials=True)
     from BackEnd import events
     return app
 

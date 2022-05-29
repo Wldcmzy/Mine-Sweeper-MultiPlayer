@@ -1,5 +1,7 @@
 from flask_socketio import SocketIO
-from flask_login import LoginManager
+from typing import Dict, Tuple
 
 clearmind_socketio = SocketIO()
-login_manager = LoginManager()
+cookie_user_dict : Dict[str, Tuple[str, float]] = {}
+user_cookie : Dict[str, str] = {}
+DISCONNECT_TIME = 300
