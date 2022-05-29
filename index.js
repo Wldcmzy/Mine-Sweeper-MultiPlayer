@@ -1,25 +1,22 @@
 var app = require('express')();
 var http = require('http').createServer(app);
 var io = require('socket.io')(http);
-app.get('/', (req, res) => {
-  res.sendFile(__dirname + '/test1.html');
-});
 
+app.get('/', (req, res) => {
+  res.sendFile(__dirname + '/login.html');
+});
 io.on("connection", (socket) => {
   console.log("用户已连接");
   socket.on("disconnection", () => {
     console.log("用户未连接");
   })
-  socket.emit("dev", 'hello clint');
-  socket.on("str", (x) => {
+  socket.emit("server", 'eny');
+  socket.on("clint", (x) => {
     console.log(x);
   })
 })
-
 const port = process.env.PORT || 7200;
-http.listen(port, () => { console.log('正在*：7200'); });
-
-
+http.listen(port, () => { console.log('正在监听：7200'); });
 
 
 

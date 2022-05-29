@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <title>MineGame</title>
+</head>
+
+<body>
+    <canvas id="mycanv" width="10000" height="10000"></canvas>
+    <script>
+        //获取画布变量
+        var canv = document.getElementById('mycanv');
+        var ctx = canv.getContext('2d');
+        //默认传输变量
+        var DEFAULT_ROW_SIZE = 300;
+        var DEFAULT_COL_SZIE = 300;
+        var DEFAULT_SEED = 1437;
+        var DEFAULT_MOD = 33554393;
+        var DEFAULT_PART_SIZE = 16;
+        var DEFAULT_PART_MINE_NUM = 48;
+        var DEFAULT_DELTA = DEFAULT_SEED;
+        var fib1 = 1;
+        var fib2 = 2;
+        //全部坐标信息
+        var g_arr = [];
+        /*********************************************************
+         * g_obj 变量记录了每个坐标(x,y)的具体信息
+         * 1.mark ： 即格子中应显示的数字，其中 -1 为炸弹，其他则表示格子周围有多少炸弹
+         * 2.open ： 即当前格子有没有被打开 0 关闭 1 打开
+         * 3.init ： 生成雷时用到的初始化数
+         * 4.time ： 时间戳，用于判断用户的先后顺序
+         * ... (根据需求可自行添加)
+         * ******************************************************/
+        var g_obj = {};
+        //颜色数据,记录了雷，格子等应用什么颜色
+        var g_color = { block: '#369', mine: '#bbb', open: '#ddd', highlight: '#89f' };
+        //图标数据，利用字符图标在格子上填充信息
+        var mine = ['💣', '🚩', '❔', '💥'];
+        //记录雷的数组，记录了所有是雷的坐标
+        var mine_arr = [];
+        //全部的格子数
+        var count;
+        //是雷的格子数
+        var mine_count;
+        //每个格子的宽度
+        var w = 30;
+        //圆角矩形的圆角半径
+        var r = 8;
+        //每个格子之间相隔的距离
+        var m = 2;
+
+        //启动函数
+        function start() {
+            init(300, 300, 1437, 33554393, 16, 48);
+            get_mine();
+            setMine();
+        }
+
+        start();
+
+        //设置所画圆角矩形的宽度，圆角半径与间距
+        function set_from(weight, radius, dis) {
+            w = weight;
+            r = radius;
+            m = dis;
+        }
+
+        //初始化函数
+        function init(row, col, seed, mod, size, mine_num) {
+            //设置初始化变量
+            DEFAULT_ROW_SIZE = row;
+            DEFAULT_COL_SZIE = col;
+            DEFAULT_SEED = seed;
+            DEFAULT_MOD = mod;
+            DEFAULT_PART_SIZE = size;
+            DEFAULT_PART_MINE_NUM = mine_num;
+            DEFAULT_DELTA = seed;
+            count = row * col;
+            mine_count = 0;
+            //循环生成坐标信息，并在canvas中画出
+            for (let i = 0; i < DEFAULT_ROW_SIZE; i++) {
+                for (let j = 0; j < DEFAULT_COL_SZIE; j++) {
+                    let xy = j + '-' + i;
+                    g_arr.push(xy);
+                    g_obj[xy] = { mark: 0, open: 0, init: 0, time: 999999 };
+                    drawBlock(xy, g_color.block);
+                }
+            }
+        }
+
+        //获得地雷数组
+        function get_mine() {
+            //对于每个子块的行列大小
+            let currow, curcol;
+            //循环的到每个子块左上角的第一个块
+            for (let i = 0; i < DEFAULT_ROW_SIZE; i += DEFAULT_PART_SIZE) {
+                for (let j = 0; j < DEFAULT_COL_SZIE; j += DEFAULT_PART_SIZE) {
+                    //判断是否越界，并计算子块的边长
+                    if (i + DEFAULT_PART_SIZE > DEFAULT_ROW_SIZE)
+                        currow = DEFAULT_ROW_SIZE - i;
+                    else
+                        currow = DEFAULT_PART_SIZE;
+
+                    if (j + DEFAULT_PART_SIZE > DEFAULT_COL_SZIE)
+                        curcol = DEFAULT_COL_SZIE - j;
+                    else
+                        curcol = DEFAULT_PART_SIZE;
+
+
+                    //初始化子块信息
+                    let cnt = 0;
+                    let num = currow * curcol * DEFAULT_PART_MINE_NUM;
+                    num = ~~(num / (DEFAULT_PART_SIZE * DEFAULT_PART_SIZE));
+                    mine_count += num;
+                    //生成子块内部雷编号
+                    for (let k = i; k < i + currow; k++) {
+                        for (let l = j; l < j + curcol; l++) {
+                            let kl = l + '-' + k;
+                            g_obj[kl].init = cnt;
+                            cnt++;
+                        }
+                    }
+
+                    //利用算法打乱内部顺序
+                    for (let k = i; k < i + currow; k++) {
+                        for (let l = j; l < j + curcol; l++) {
+                            let kl = l + '-' + k;
+                            get_change(currow, curcol, i, j, kl);
+                        }
+                    }
+
+
+                    //根据打乱的编号找到雷并放入mine_arr
+                    for (let k = i; k < i + currow; k++) {
+                        for (let l = j; l < j + curcol; l++) {
+                            let kl = l + '-' + k;
+                            if (g_obj[kl].init < num) {
+                                mine_arr.push(kl);
+                                g_obj[kl].mark = -1;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+
+        //获得生成雷算法中要交换的坐标
+        function get_change(row, col, i, j, kl) {
+
+            //迭代斐波那契数组
+            let temp = fib1;
+            fib1 = fib2;
+            fib2 = (temp + fib2) % DEFAULT_MOD;
+            //迭代种子
+            while (true) {
+                DEFAULT_DELTA = (DEFAULT_DELTA * fib1) % DEFAULT_MOD;
+                if (DEFAULT_DELTA > row * col)
+                    break;
+            }
+            //生成要交换的坐标
+            let y = DEFAULT_DELTA % row;
+            temp = DEFAULT_DELTA;
+            temp = ~~(temp / row);
+            let x = temp % col;
+            let xy = `${x + j}-${y + i}`;
+            //进行交换
+            temp = g_obj[xy].init;
+            g_obj[xy].init = g_obj[kl].init;
+            g_obj[kl].init = temp;
+        }
+
+        //根据生成的mine_arr数组对每个坐标的mark值进行计算
+        function setMine() {
+            mine_arr.forEach(n => {
+                g_obj[n].mark = -1;
+                let around = getAround(n);
+                around.forEach(xy => {
+                    if (g_obj[xy].mark != -1)
+                        g_obj[xy].mark++;
+                });
+            })
+        }
+
+        //辅助显示函数，方便调试，正式使用时请注释
+        showInfo();
+
+        function showInfo() {
+            g_arr.forEach(n => {
+                if (g_obj[n].mark == -1) {
+                    drawBlock(n, g_color.mine);
+                    markText(n, mine[0]);
+                } else {
+                    markText(n, g_obj[n].mark);
+                }
+            })
+        }
+
+        //显示文本函数，用于让格子上显示对应的值
+        function markText(xy, txt) {
+            let [x, y] = xy.split('-').map(n => n * w);
+            ctx.save();
+            ctx.font = '15px Arial';
+            ctx.fillStyle = '#fff';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(txt, x + w / 2, y + w / 2);
+            ctx.restore();
+        }
+
+        //获得(x,y)坐标周围八个格子内所有合法坐标
+        function getAround(xy) {
+            let [x, y] = xy.split('-').map(n => n * 1);
+            let around = [];
+            for (let i = -1; i <= 1; i++) {
+                for (let j = -1; j <= 1; j++) {
+                    let id = `${x + j}-${y + i}`;
+                    if (g_arr.includes(id) && id != xy)
+                        around.push(id);
+                }
+            }
+            return around;
+        }
+
+        //画圆角矩形的函数，其中(x,y)为坐标，c为要填充的颜色或样式
+        function drawBlock(xy, c) {
+            let [x, y] = xy.split('-').map(n => n * w);
+            ctx.save();
+            ctx.beginPath();
+            ctx.moveTo(x, y + r);
+            ctx.arcTo(x, y + w - m, x + w - m, y + w - m, r);
+            ctx.arcTo(x + w - m, y + w - m, x + w - m, y, r);
+            ctx.arcTo(x + w - m, y, x, y, r);
+            ctx.arcTo(x, y, x, y + w - m, r);
+            ctx.fillStyle = c;
+            ctx.fill();
+            ctx.restore();
+        }
+
+        //为画布增加监听事件
+        canv.addEventListener('click', openBlock);
+        //监听函数
+        function openBlock(ev) {
+            //获得 x与y坐标
+            let x = ~~(ev.offsetX / w);
+            let y = ~~(ev.offsetY / w);
+            let xy = x + '-' + y;
+            if (g_obj[xy].open == 0)
+                count--;
+            g_obj[xy].open = 1;
+            //改变格子状态
+            drawBlock(xy, g_color.open);
+            markText(xy, g_obj[xy].mark);
+            //如果为0则dfs，为雷则炸
+            if (g_obj[xy].mark == 0) {
+                dfszero(xy);
+            } else if (g_obj[xy].mark == -1) {
+                count--;
+                mine_count--;
+                drawBlock(xy, g_color.mine);
+                markText(xy, mine[0]);
+                markText(xy, mine[3]);
+                alert("雷炸了！！！！！");
+            }
+            console.log(x, y);
+            if(g_arr.includes(xy))
+                sendmessage(xy);
+            //检查是否结束
+            checkOver();
+        }
+
+        //对于0的dfs
+        function dfszero(xy) {
+            let around = getAround(xy);
+            around.forEach(n => {
+                if (g_obj[n].open == 0) {
+                    count--;
+                    g_obj[n].open = 1;
+                    drawBlock(n, g_color.open);
+                    markText(n, g_obj[n].mark);
+                    if (g_obj[n].mark == 0)
+                        dfszero(n);
+                }
+            })
+        }
+
+        //检查是否结束函数，如果剩下的格子全是雷则结束
+        function checkOver() {
+            let over = 0;
+            if (count == mine_count) {
+                over = 1;
+                alert("胜利！！");
+            }
+            return over;
+        }
+
+        //根据时间戳进行上色
+        function dfstime() {
+
+        }
+
+    </script>
+
+
+    <script>
+        var socket = io.connect("http://127.0.0.1:7200");
+        if (socket) {
+            console.log('Connected to user')
+
+        }
+
+        function sendmessage(x){
+            socket.emit("clint", x)//用于客服端发送请求服务器端
+        }
+        
+        socket.on("server", (receiveinf) => {//用于接收服务器发送客服端
+            console.log(receiveinf);
+            
+        })
+    </script>
+    <script>
+        var name = decodeURI(document.URL);
+        name = name.slice(name.indexOf("=") + 1);
+        alert(name);
+    </script>
+
+</body>
+
+</html>
