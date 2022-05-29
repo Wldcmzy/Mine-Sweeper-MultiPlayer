@@ -1,9 +1,11 @@
+from numpy import bool_
 from .clearmine import ClearMine
 from typing import Tuple, Optional
 from .dababaseOperator import sqlOperator
 from typing import Tuple
 import threading
 import json
+import time
 
 class Server:
     def __init__(self) -> None:
@@ -11,6 +13,7 @@ class Server:
         #self.__lock = threading.Lock()
         self.__CM = ClearMine()
         self.__SQL = sqlOperator()
+        self.__ready = 0
 
 
     def login(self, username : str, password : str) -> bool:
@@ -23,48 +26,36 @@ class Server:
         return self.__SQL.register(code, username, password)
 
 
-    def click(self, x : int , y : int, username : str) -> Tuple[int, str, bool]:
+    def click(self, x : int , y : int, username : str) -> Tuple[bool, str, bool, int]:
         color_number = self.__CM.get_user_color_num(username)
         color_string = self.__CM.get_user_color_str(color_number)
         click_status = self.__CM.click(x, y, color_number)
-        
-        return click_status, color_string
+        finish = self.__CM.judge_win()
 
+        bool_ret = False
+        if click_status >= 0:
+            clearCount = self.__SQL.select_userInfo_clearCount(username)
+            self.__SQL.update_userInfo_clearCount(username, clearCount + click_status)
+            bool_ret = True
+        elif click_status == -1:
+            boomCount = self.__SQL.select_userInfo_boomCount(username)
+            self.__SQL.update_userInfo_boomCount(username, boomCount + 1)
+            bool_ret = True
 
+        return bool_ret, color_string, finish, self.__CM.get_timmer()
 
+    def timmer(self):
+        return self.__CM.get_timmer()
 
-    # def __clear_data_queue(self) -> None:
-    #     self.__data_queue = []
+    def history(self):
+        return self.__CM.get_click_history()
 
-    # def get_message(self) -> Optional[Tuple[str, Tuple[str, int]]]:
-    #     if len(self.__data_queue) == 0: return None
-    #     return self.__data_queue.pop(0)
+    def args(self):
+        return self.__CM.get_args()
 
-    # def push_message(self, message : Tuple[str, Tuple[str, int]]) -> None:
-    #     self.__lock.acquire()
-    #     self.__data_queue.append(message)
-    #     self.__lock.release()
+    def restart(self):
+        self.__CM.restart(True)
+        self.__ready = time.time() + 60
 
-    # def __message_checker(self, operation : str):
-    #     if operation == 'login': return 1
-    #     if operation == 'register': return 2
-    #     if operation == 'click': return 3
-
-
-    # def __auto_work(self) -> None:
-    #     while True:
-    #         message = self.get_message()
-    #         if message:
-    #             data, address = message
-    #             data = json.loads()
-    #             op = self.__message_checker(data['type'])
-    #             pass
-                
-
-
-    # def working(self) -> None:
-    #     t = threading.Thread(target = self.__auto_work, name = 'working')
-    #     t.start()
-
-
-
+    def ready(self):
+        return time.time() > self.__ready

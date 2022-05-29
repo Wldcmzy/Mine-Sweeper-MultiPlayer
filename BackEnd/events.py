@@ -1,6 +1,10 @@
+
+from re import U
 from flask import session, request
 from flask_socketio import emit, join_room, leave_room, disconnect
-from .objects import clearmind_socketio, cookie_user_dict, DISCONNECT_TIME, user_cookie
+from numpy import broadcast
+from regex import P
+from .objects import CM_server, clearmind_socketio, cookie_user_dict, DISCONNECT_TIME, user_cookie, gen_cookie
 import time
 import json
 
@@ -13,8 +17,9 @@ def login_connect():
         username = request.args['username']
         password = request.args['password']
         '''进行身份识别, 返回cookie或错误信息'''
-        cookie = '123'
-        if True:
+ 
+        if CM_server.login(username, password) == True:
+            cookie = str(gen_cookie())
             if username in user_cookie:
                 del cookie_user_dict[user_cookie[username]]
             user_cookie[username] = cookie
@@ -38,8 +43,10 @@ def login_connect():
         invitecode = request.args['invitecode']
         username = request.args['username']
         password = request.args['password']
-        '''注册'''
-        emit('reply', '!!!!!!')
+        if CM_server.register(invitecode, username, password) == True:
+            emit('reply', 'ok')
+        else:
+            emit('reply', 'deny')
     except:
         register_disconnect()
         return False
@@ -63,7 +70,9 @@ def mine_connect():
                 del user_cookie[username]
                 del cookie_user_dict[cookie]
         if not judge: 
-            raise Exception('身份过期')
+            raise Exception('身份无效')
+        emit('args', json.dumps(CM_server.args()))
+        emit('history', json.dumps(CM_server.history()))
     except :
         mine_disconnect()
         return False
@@ -78,3 +87,17 @@ def mine_disconnect():
     print('扫雷连接断开')
 
 
+
+@clearmind_socketio.on('click', namespace='/wsmine')
+def mine_click(info):
+    if CM_server.ready() == False: return
+    cookie = request.args['cookie']
+    data = json.loads(info)
+    x, y = data['x'], data['y']
+    username = data['username']
+    snd, color, finish, timmer = CM_server.click(x, y, username)
+    if snd:
+        emit('broadcast', json.dumps({'x' : x, 'y' : y, 'color' : color, 'timmer' : timmer}), broadcast = True)
+    if finish:
+        CM_server.restart()
+        emit('args', json.dumps(CM_server.args()), broadcast = True)

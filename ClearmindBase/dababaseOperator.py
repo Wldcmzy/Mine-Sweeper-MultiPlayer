@@ -1,6 +1,8 @@
 from random import randint
 import pymysql
+from soupsieve import select
 from .config import HOST, USER, PASSWORD, DATABASE
+from typing import Optional
 class sqlOperator:
     def __init__(self, host = HOST, user = USER, password = PASSWORD, database = DATABASE):
         self.__host = host
@@ -57,25 +59,25 @@ class sqlOperator:
         self.__cursor.execute(sql)
         self.__connection.commit()
 
-    def select_userInfo_clearCount(self, userID):
-        sql = 'select clearCount from userInfo where userID = \'%s\'' % (userID)
+    def select_userInfo_clearCount(self, username):
+        sql = 'select clearCount from userInfo where username = \'%s\'' % (username)
         self.__cursor.execute(sql)
         ret = self.__cursor.fetchone()
-        return ret
+        return ret['clearCount']
     
-    def update_userInfo_clearCount(self, userID, clearCount):
-        sql = 'update userInfo set clearCount = %d where userID= \'%s\'' % (clearCount,userID)
+    def update_userInfo_clearCount(self, username, clearCount):
+        sql = 'update userInfo set clearCount = %d where username= \'%s\'' % (clearCount,username)
         self.__cursor.execute(sql)
         self.__connection.commit()
 
-    def select_userInfo_boomCount(self, userID):
-        sql = 'select boomCount from userInfo where userID = \'%s\'' % (userID)
+    def select_userInfo_boomCount(self, username):
+        sql = 'select boomCount from userInfo where username = \'%s\'' % (username)
         self.__cursor.execute(sql)
         ret = self.__cursor.fetchone()
-        return ret
+        return ret['boomCount']
     
-    def update_userInfo_boomCount(self, userID, boomCount):
-        sql = 'update userInfo set boomCount = %d where userID= \'%s\'' % (boomCount,userID)
+    def update_userInfo_boomCount(self, username, boomCount):
+        sql = 'update userInfo set boomCount = %d where username= \'%s\'' % (boomCount,username)
         self.__cursor.execute(sql)
         self.__connection.commit()
 
@@ -93,17 +95,24 @@ class sqlOperator:
             self.__cursor.execute(sql, (row, code))
         self.__connection.commit()
 
-    def select_by_user(self, username : str):
+    def select_by_user(self, username : str) -> Optional[dict]:
         sql = f'select * from userInfo where username = \'{username}\''
         self.__cursor.execute(sql)
         return self.__cursor.fetchone()
 
     def register(self, invitecode : str, username : str, password : str) -> bool:
+
+        # 检查重名
+        if self.select_by_user(username) != None: return False
+
+        # 检查邀请码合法性(存在/未使用)
         sql = f'select userID, ifUsed from invitation where invitationCode = \'{invitecode}\''
         row = self.__cursor.execute(sql)
         if row == 0: return False
         data = self.__cursor.fetchone()
         if data['ifUsed'] != 0: return False
+
+        # 注册操作
         sql = 'insert into userInfo values (%s, %s, %s, 0, 0, 0)'
         self.__cursor.execute(sql, (data['userID'], username, password))
         self.__connection.commit()

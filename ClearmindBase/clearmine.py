@@ -236,6 +236,16 @@ class ClearMine:
         '''获取时间戳'''
         return self.__timmer
 
+    def get_args(self) -> dict:
+        return {
+            'row' : self.__size_row,
+            'col' : self.__size_col,
+            'partsize' : self.__part_size,
+            'mine' : self.__part_mine_num,
+            'mod' : self.__mod,
+            'seed' : self.__seed,
+        }
+
 if __name__ == '__main__':
     pass
     
