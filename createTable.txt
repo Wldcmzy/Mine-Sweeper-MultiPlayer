@@ -1,17 +1,20 @@
 create table invitation( 
-userID varchar(45) primary Key,  
-invitationCode varchar(45),  
-ifUsed  INT 
+	userID varchar(45) primary Key,  
+	invitationCode varchar(45),  
+	ifUsed  INT 
 );
 
 create table userInfo(
-userID varchar(45) PRIMARY KEY, 
-username varchar(45) UNIQUE, 
-passwd varchar(45), 
-ifOnline INT,  
-clearCount INT, 
-boomCount INT, 
-FOREIGN KEY (userID) REFERENCES invitation (userID) 
+	userID varchar(45) PRIMARY KEY, 
+	username varchar(45) UNIQUE,
+	passwd varchar(45), 
+	ifOnline INT,  
+	clearCount INT, 
+	boomCount INT, 
+	FOREIGN KEY (userID) REFERENCES invitation (userID) 
 );
+
+grant all privileges on table invitation to cm@localhost;
+grant all privileges on table userInfo to cm@localhost;
 
 
