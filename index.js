@@ -1,20 +1,23 @@
 var app = require('express')();
 var http = require('http').createServer(app);
 var io = require('socket.io')(http);
-//在使用nodejs里面使用require采用commonjs模块
-//在es6里面的js使用impore 通过export或者export default
-app.get('/',(req,res)=>{
-  res.sendFile(__dirname + '/index.html');
+app.get('/', (req, res) => {
+  res.sendFile(__dirname + '/test1.html');
 });
 
-io.on("connection",(socket)=> { 
+io.on("connection", (socket) => {
   console.log("用户已连接");
-  socket.on("disconnection",()=>{
-  console.log("用户未连接");
+  socket.on("disconnection", () => {
+    console.log("用户未连接");
+  })
+  socket.emit("dev", 'hello clint');
+  socket.on("str", (x) => {
+    console.log(x);
+  })
 })
-})
-const port = process.env.PORT || 7200 ;
-http.listen( port,()=> { console .log('正在*：7200'); });
+
+const port = process.env.PORT || 7200;
+http.listen(port, () => { console.log('正在*：7200'); });
 
 
 

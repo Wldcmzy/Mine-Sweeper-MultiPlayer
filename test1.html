@@ -151,20 +151,19 @@
 
     </script>
 
-    <script src="https://cdn.socket.io/4.5.1/socket.io.js"></script>
+<script src="./socket.io/socket.io.js"></script>
+<script>
 
-    <script>
-        (function(){
-            //连接socket io
-            var socket = io({'timeout': 5000,'connect timeout':5000});
+        var socket = io.connect("http://127.0.0.1:7200");
 
-            //检查连接
-            if(socket!==undefined){
-                console.log('Connected to socket...')
-            }
-        })();
-
-    </script>
+        if (socket) {
+            console.log('Connected to user')
+        }
+        socket.emit("str", 'hello server')//用于客服端发送请求服务器端
+        socket.on("dev", (x) => {//用于接收服务器发送客服端
+            console.log(x);
+        })
+</script>
 
 </body>
 </html>
