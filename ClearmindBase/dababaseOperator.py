@@ -93,6 +93,23 @@ class sqlOperator:
             self.__cursor.execute(sql, (row, code))
         self.__connection.commit()
 
+    def select_by_user(self, username : str):
+        sql = f'select * from userInfo where username = \'{username}\''
+        self.__cursor.execute(sql)
+        return self.__cursor.fetchone()
+
+    def register(self, invitecode : str, username : str, password : str) -> bool:
+        sql = f'select userID, ifUsed from invitation where invitationCode = \'{invitecode}\''
+        row = self.__cursor.execute(sql)
+        if row == 0: return False
+        data = self.__cursor.fetchone()
+        if data['ifUsed'] != 0: return False
+        sql = 'insert into userInfo values (%s, %s, %s, 0, 0, 0)'
+        self.__cursor.execute(sql, (data['userID'], username, password))
+        self.__connection.commit()
+        self.update_invitation_ifUsed(invitecode, 1)
+        return True
+
     def test_select(self):
         sql = 'select userID uid, invitationCode code from invitation'
         row = self.__cursor.execute(sql)
