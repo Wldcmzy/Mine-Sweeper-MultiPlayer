@@ -3,6 +3,7 @@ var http = require('http').createServer(app);
 var io = require('socket.io')(http);
 
 app.get('/', (req, res) => {
+
   res.sendFile(__dirname + '/login.html');
 });
 io.on("connection", (socket) => {
@@ -10,11 +11,15 @@ io.on("connection", (socket) => {
   socket.on("disconnection", () => {
     console.log("用户未连接");
   })
+
   socket.emit("server", 'eny');
   socket.on("clint", (x) => {
-    console.log(x);
+    var msg=JSON.parse(x);
+    console.log(msg.username);
+    console.log(msg.password);
   })
 })
+
 const port = process.env.PORT || 7200;
 http.listen(port, () => { console.log('正在监听：7200'); });
 

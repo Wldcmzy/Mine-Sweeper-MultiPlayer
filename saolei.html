@@ -52,7 +52,7 @@
 
         //启动函数
         function start() {
-            init(300, 300, 1437, 33554393, 16, 48);
+            init(30, 30, 1437, 33554393, 16, 48);
             get_mine();
             setMine();
         }
@@ -65,7 +65,6 @@
             r = radius;
             m = dis;
         }
-
         //初始化函数
         function init(row, col, seed, mod, size, mine_num) {
             //设置初始化变量
@@ -264,7 +263,7 @@
                 alert("雷炸了！！！！！");
             }
             console.log(x, y);
-            if(g_arr.includes(xy))
+            if (g_arr.includes(xy))
                 sendmessage(xy);
             //检查是否结束
             checkOver();
@@ -296,35 +295,61 @@
         }
 
         //根据时间戳进行上色
-        function dfstime() {
-
+        function dfstime(revx, revy, revcolor, revtimmer) {
+            
         }
 
     </script>
 
-
+    <script src="./socket.io/socket.io.js"></script>
     <script>
-        var socket = io.connect("http://127.0.0.1:7200");
-        if (socket) {
-            console.log('Connected to user')
+        //接受登陆界面cookie
+        var this_cookie = decodeURI(document.URL);
+        this_cookie = this_cookie.slice(this_cookie.indexOf("=") + 1);
+        //alert(this_cookie);
 
+        //初始化，建立连接，接收服务器的种子
+        function revseed() {
+            socket = io.connect("http://127.0.0.1:7200", {
+                reconnectionDelayMax: 10000,
+            });
+            socket.on("args", (seed) => {//用于接收服务器发送客服端
+                var new_row=seed.row;
+                var new_col=seed.col;
+                var new_partsize=seed.partsize;
+                var new_mine=seed.mine;
+                var new_mod=seed.mod;
+                var new_seed=seed.seed;
+            })
         }
 
-        function sendmessage(x){
-            socket.emit("clint", x)//用于客服端发送请求服务器端
-        }
-        
-        socket.on("server", (receiveinf) => {//用于接收服务器发送客服端
-            console.log(receiveinf);
-            
+        //构造坐标信息(x,y,cookie)
+        function sendmessage(xy) {
+            let [x, y] = xy.split('-').map(n => n * 1);
+            socket = io.connect("http://127.0.0.1:7200", {
+                reconnectionDelayMax: 10000,
+            });
+            var test = {
+                "x": x,
+                "y": y,
+                "cookie": this_cookie
+            };
+            var test_msg = JSON.stringify(test);
+            socket.emit("clint", test_msg)//用于客服端发送请求服务器端
+        }  
+        //接收服务器广播信息
+        socket = io.connect("http://127.0.0.1:7200", {
+            reconnectionDelayMax: 10000,
+        });
+        socket.on("boardcast", (revbroad) => {//用于接收服务器发送客服端
+            var msg = JSON.parse(revbroad);
+            var revx = msg.x;
+            var revy = msg.y;
+            var revcolor = msg.color;
+            var revtimmer = msg.timmer;
+            dfstime(revx, revy, revcolor, revtimmer);
         })
     </script>
-    <script>
-        var name = decodeURI(document.URL);
-        name = name.slice(name.indexOf("=") + 1);
-        alert(name);
-    </script>
-
 </body>
 
 </html>

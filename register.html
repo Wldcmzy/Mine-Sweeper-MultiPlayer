@@ -52,6 +52,7 @@
 </style>
 </head>
 <body>
+	<script src="./socket.io/socket.io.js"></script>
 	<img src="./qwe.jpg" alt="">
 	<div class="entity">
 
@@ -67,7 +68,7 @@
 		</div>
 		<div class="form_input1">
 			<span><font size="5">邀请码：</font></span> <input class="inputs"
-				type="text">
+				type="text" id="invitcode">
 		</div>
 		<div class="cha">
 			<button onclick="back()">返回登陆</button>
@@ -77,32 +78,30 @@
 					window.location.href = "login.html";
 				}
 				function gointo() {
-					var id=document.getElementById("id").value;
+					var username=document.getElementById("id").value;
 					var password=document.getElementById("password").value;
-					
-					socket = io.connect('ws://' + document.domain + ':' + location.port + '/call', {
+					var invitcode=document.getElementById("invitcode").value;
+					var test = {
+						"invitcode": invitcode,
+						"username": username,
+						"password": password
+					};	
+					var test_msg = JSON.stringify(test);
+					socket = io.connect("http://127.0.0.1:7200", {
 						reconnectionDelayMax: 10000,
-						query: {
-							"username":document.getElementById("id").value,
-							"password":document.getElementById("password").value,
-							"invit":document.getElementById("password").value
-						}
 					});
-
-					socket.emit("clint", 'hello server')
-
-					socket.on("reply", function(from_server){//用于接收服务器发送客服端
+					socket.emit("clint", test_msg)//用于客服端发送请求服务器端
+					socket.on("reply", (from_server)=>{//用于接收服务器发送客服端
 						console.log(from_server)
-						if (from_server) {
-							window.location.href = encodeURI('./login.html?uname=注册成功');
+						if (from_server=="deny") {
+							alert("邀请码错误！")
 						} else {
-							alert("用户名或密码错误！")
+							window.location.href = encodeURI('./login.html?uname=1');
 						}
 					})
 				}
 			</script>
 		</div>
-
 	</div>
 </body>
 </html>

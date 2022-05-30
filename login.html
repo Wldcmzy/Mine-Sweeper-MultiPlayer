@@ -85,28 +85,30 @@
 			<button>登录</button>
 			<script>
 				function login() {
-					var id=document.getElementById("id").value;
-					var password=document.getElementById("password").value;
-
+					var test_cookie="this is my cookie"
+					window.location.href = encodeURI('./saolei.html?uname='+test_cookie);
+					var username = document.getElementById("id").value;
+					var password = document.getElementById("password").value;
 					/*
-					socket = io.connect("http://127.0.0.1:7200", {
+					socket = io.connect('ws://' + document.domain + ':' + location.port + '/call', {
 						reconnectionDelayMax: 10000,
-						query: {
-							"username":document.getElementById("id").value,
-							"password":document.getElementById("password").value
-						}
 					});
 					*/
-					var socket = io.connect("http://127.0.0.1:7200");
-
-					socket.emit("clint", 'hello server')//发消息
-
-					socket.on("server", (from_server) => {//用于接收消息
-						if (from_server == "deny") {
+					socket = io.connect("http://127.0.0.1:7200", {
+						reconnectionDelayMax: 10000,
+					});
+					var test = {
+						"username": username,
+						"password": password
+					};
+					var test_msg = JSON.stringify(test);
+					socket.emit("clint", test_msg)//用于客服端发送请求服务器端
+					socket.on("reply", (cookie) => {
+						if (cookie == "deny") {
 							socket.disconnect();
 							alert("用户名或密码错误！")
 						} else {
-							window.location.href = encodeURI('./saolei.html?uname=' + from_server);
+							window.location.href = encodeURI('./saolei.html?uname=' + cookie);
 						}
 					})
 				}
@@ -118,10 +120,8 @@
 		<script>
 			var name = decodeURI(document.URL);
 			name = name.slice(name.indexOf("=") + 1);
-			if (name == "1") alert("注册成功");
+			if (name == "1") alert("注册成功，请登录！");
 		</script>
 	</div>
-
 </body>
-
 </html>
