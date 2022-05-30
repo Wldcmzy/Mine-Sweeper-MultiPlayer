@@ -1,7 +1,11 @@
 from flask_socketio import SocketIO
 from typing import Dict, Tuple
-from ..ClearmindBase import Server
 from random import randint
+
+import sys
+sys.path.append("..")
+from ClearmindBase import Server
+# from ..ClearmindBase import Server
 
 clearmind_socketio = SocketIO()
 cookie_user_dict : Dict[str, Tuple[str, float]] = {}

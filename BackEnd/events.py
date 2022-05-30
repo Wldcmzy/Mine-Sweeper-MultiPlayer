@@ -1,23 +1,22 @@
 
-from re import U
 from flask import session, request
 from flask_socketio import emit, join_room, leave_room, disconnect
-from numpy import broadcast
-from regex import P
 from .objects import CM_server, clearmind_socketio, cookie_user_dict, DISCONNECT_TIME, user_cookie, gen_cookie
 import time
 import json
-
 
 
 @clearmind_socketio.on('connect', namespace='/wslogin')
 def login_connect():
     print('收到登录请求')
     try:
+        print('asdklfjskljdasjflkasdhglkashl')
+        print(request.args)
         username = request.args['username']
         password = request.args['password']
+        print('>>>>>>>>>>>>>>>>>>>', username , password)
         '''进行身份识别, 返回cookie或错误信息'''
- 
+
         if CM_server.login(username, password) == True:
             cookie = str(gen_cookie())
             if username in user_cookie:
@@ -25,10 +24,14 @@ def login_connect():
             user_cookie[username] = cookie
             cookie_user_dict[cookie] = (username, time.time())
             emit('reply', cookie)
+            print('send  cookie <<<<<<<<<<<<')
         else:
             emit('reply', 'deny')
-    except:
+            print('send  deny <<<<<<<<<<<<')
+    except Exception as e:
         login_disconnect()
+        print('ERROR <<<<<<<<<<<<')
+        print(type(e), str(e))
         return False
 
 @clearmind_socketio.on('disconnect', namespace='/wslogin')
@@ -39,17 +42,21 @@ def login_disconnect():
 @clearmind_socketio.on('connect', namespace='/wsregister')
 def login_connect():
     print('注册登录请求')
-    try:
-        invitecode = request.args['invitecode']
-        username = request.args['username']
-        password = request.args['password']
-        if CM_server.register(invitecode, username, password) == True:
-            emit('reply', 'ok')
-        else:
-            emit('reply', 'deny')
-    except:
-        register_disconnect()
-        return False
+    # try:
+    invitecode = request.args['invitecode']
+    username = request.args['username']
+    password = request.args['password']
+    print('>>>>>>>>>>>>>>>>>> ok11111')
+    if CM_server.register(invitecode, username, password) == True:
+        emit('reply', 'ok')
+        print('>>>>>>>>>>>  send ok')
+    else:
+        emit('reply', 'deny')
+        print('>>>>>>>>>>>  send deny')
+    # except:
+    #     register_disconnect()
+    #     print('????????????????????')
+    #     return False
 
 @clearmind_socketio.on('disconnect', namespace='/wsregister')
 def register_disconnect():
@@ -94,7 +101,11 @@ def mine_click(info):
     cookie = request.args['cookie']
     data = json.loads(info)
     x, y = data['x'], data['y']
-    username = data['username']
+    # username = data['username']
+    username, tm = cookie_user_dict[cookie]
+    if time.time() - tm < DISCONNECT_TIME:
+        return False
+    print(x, y, username)
     snd, color, finish, timmer = CM_server.click(x, y, username)
     if snd:
         emit('broadcast', json.dumps({'x' : x, 'y' : y, 'color' : color, 'timmer' : timmer}), broadcast = True)

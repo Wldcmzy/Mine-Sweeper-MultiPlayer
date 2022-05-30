@@ -196,7 +196,7 @@ class ClearMine:
         if not self.__judgeEdge(x, y): return -5 # 越界
         if self.__color[x][y] != 0: return -2   # 格子已经被扫开
 
-        self.__click_history.append((x, y))
+        self.__click_history.append((x, y, self.get_user_color_str(color)))
         self.__timmer += 1
 
         if self.__board[x][y] == ClearMine.MINE: # 点到雷

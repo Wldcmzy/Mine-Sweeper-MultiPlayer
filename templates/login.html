@@ -1,60 +1,127 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
+
 <head>
-    <meta charset="UTF-8">
-    <title>T E S T</title>
-    <script src="http://code.jquery.com/jquery-3.4.1.js"></script>
-    <script src="https://cdn.socket.io/3.1.1/socket.io.js"></script>
+	<meta charset="utf-8">
+	<title>login</title>
+	<style>
+		.entity {
+			position: absolute;
+			z-index: 10;
+			right: 0;
+			left: 0;
+			top: 0;
+			bottom: 0;
+			margin: auto;
+			margin-top: 200px;
+			font-size: 18px;
+			width: 650px;
+			height: 330px;
+			background: #848a84a2;
+			border-radius: 10px;
+			color: #0c0c0c;
+			display: flex;
+			flex-direction: column;
+		}
+
+		.title {
+			text-align: center;
+			margin-top: 40px;
+			margin-bottom: 10px;
+			font-size: 30px;
+			color: #0a0641;
+		}
+
+		.form_input1 {
+			padding: 0 150px;
+			box-sizing: border-box;
+			display: flex;
+			margin-top: 20px;
+		}
+
+		.form_input2 {
+			padding: 0 170px;
+			box-sizing: border-box;
+			display: flex;
+			margin-top: 20px;
+		}
+
+		.bnt {
+			padding: 0 300px;
+			box-sizing: border-box;
+			display: flex;
+			margin-top: 20px;
+		}
+
+		.cha {
+			text-align: center;
+			margin-top: 20px;
+		}
+	</style>
 </head>
+
 <body>
-    <button class="A">send call</button>
-    <button class="B">fetch</button>
-    <script type="text/javascript" scr charset="utf-8">
-        $(document).ready(function() {
-            console.log('ready');
-            socket = io.connect('ws://' + document.domain + ':' + location.port + '/wslogin', {
-                reconnectionDelayMax: 10000,
-                query: {
-                    "username": "asdfasf",
-                    "password": "4fdas5"
-                }
-            });
-            console.log('io ini');
-            socket.on('connect', function() {
-                console.log('connect 连接');
-            });
+	<script src={{ url_for('static', filename = 'socket.io.js') }}></script>
+	<img src="./qwe.jpg" alt="">
+	<div class="entity">
+		<span class="title">
+			<font size="5">疫情期间聚众扫雷</font>
+		</span>
 
-            socket.on('disconnect', function(){
-                console.log('断开');
-            });
+		<div class="form_input1">
+			<span>
+				<font size="5">用户名：</font>
+			</span> <input class="inputs" type="text" id="id">
+		</div>
 
-            $('.A').on('click', function(e){
-                console.log('emit A...')
-                socket.emit('A', 'ohhhhh');
-            })
-            
-            $('.B').on('click', function(e){
-                var headers = new Headers({
-                    "accept": "application/javascript" ,
-                    "name" : "456",
-                    'data' : "123",
-                });
-                headers.append("accept", "application/xml");
-                headers.set("user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.92 Safari/537.36");
-                window.fetch('/login', {
-                    method: "POST",
-                    headers: headers,
-                    cache: 'no-cache',
-                    redirect : 'follow',
-                })
-                .then(res => {
-                    console.log(res);
-                    if(res.redirected == true){
+		<div class="form_input2">
+			<span>
+				<font size="5">密码：</font>
+			</span> <input class="inputs" type="password" id="password">
 
-                    }
-                })
-            })
-        });
-    </script>
+		</div>
+
+		<div class="bnt" onclick="login()">
+			<button>登录</button>
+			<script>
+				function login() {
+					//var test_cookie="this is my cookie"
+					//window.location.href = encodeURI('./saolei.html?uname='+test_cookie);
+					var username = document.getElementById("id").value;
+					var password = document.getElementById("password").value;
+					
+					/*
+					socket = io.connect('ws://' + document.domain + ':' + location.port + '/call', {
+						reconnectionDelayMax: 10000,
+					});
+					*/
+					socket = io.connect('ws://' + document.domain + ':' + location.port + '/wslogin', {
+						reconnectionDelayMax: 10000,
+						query: {
+							"username": username,
+							"password": password
+						}
+					});
+					//socket.emit("clint", test_msg)//用于客服端发送请求服务器端
+					socket.on("reply", (cookie) => {
+						if (cookie == "deny") {
+							socket.disconnect();
+							alert("用户名或密码错误！")
+						} else {
+							window.location.href = encodeURI('/saolei?uname=' + cookie);
+						}
+					})
+				}
+			</script>
+		</div>
+		<div class="cha">
+			<a href={{  url_for('static',filename = 'register.html') }}>没有账号？注册一个</a>
+		</div>
+		<script>
+			var name = decodeURI(document.URL);
+			name = name.slice(name.indexOf("=") + 1);
+			if (name == "1") alert("注册成功，请登录！");
+		</script>
+	</div>
 </body>
 </html>

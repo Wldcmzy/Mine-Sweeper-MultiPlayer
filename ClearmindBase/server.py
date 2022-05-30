@@ -1,7 +1,7 @@
-from numpy import bool_
+
 from .clearmine import ClearMine
 from typing import Tuple, Optional
-from .dababaseOperator import sqlOperator
+from .databaseOperator import sqlOperator
 from typing import Tuple
 import threading
 import json
@@ -13,6 +13,7 @@ class Server:
         #self.__lock = threading.Lock()
         self.__CM = ClearMine()
         self.__SQL = sqlOperator()
+        self.__SQL.active()
         self.__ready = 0
 
 
@@ -55,7 +56,7 @@ class Server:
 
     def restart(self):
         self.__CM.restart(True)
-        self.__ready = time.time() + 60
+        self.__ready = time.time()
 
     def ready(self):
         return time.time() > self.__ready

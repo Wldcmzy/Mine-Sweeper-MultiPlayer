@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>register</title>
+<style>
+.entity {
+	position: absolute;
+	z-index: 10;
+	right: 0;
+	left: 0;
+	top: 0;
+	bottom: 0;
+	margin: auto;
+	margin-top: 200px;
+	font-size: 18px;
+	width: 650px;
+	height: 380px;
+	background: #848a84a2;
+	border-radius: 10px;
+	color: #0c0c0c;
+	display: flex;
+	flex-direction: column;
+}
+
+.title {
+	text-align: center;
+	margin-top: 40px;
+	margin-bottom: 10px;
+	font-size: 30px;
+	color: #0a0641;
+}
+
+.form_input1 {
+	padding: 0 150px;
+	box-sizing: border-box;
+	display: flex;
+	margin-top: 20px;
+}
+
+.form_input2 {
+	padding: 0 170px;
+	box-sizing: border-box;
+	display: flex;
+	margin-top: 20px;
+}
+
+.cha {
+	text-align: center;
+	margin-top: 20px;
+}
+</style>
+</head>
+<body>
+<!--<script type="text/javascript" src={{ url_for('static', filename = 'socket.io.js') }}></script> -->
+<script type="text/javascript" src='socket.io.js'></script>
+	<img src="./qwe.jpg" alt="">
+	<div class="entity">
+
+		<span class="title"><font size="5"><b>注册登录</b></font></span>
+
+		<div class="form_input1">
+			<span><font size="5">用户名：</font></span> <input class="inputs"
+				type="text" id="id">
+		</div>
+		<div class="form_input2">
+			<span><font size="5">密码：</font></span> <input class="inputs"
+				type="password" id="password">
+		</div>
+		<div class="form_input1">
+			<span><font size="5">邀请码：</font></span> <input class="inputs"
+				type="text" id="invitcode">
+		</div>
+		<div class="cha">
+			<button onclick="back()">返回登陆</button>
+			<button onclick="gointo()">注册账号</button>
+			<script>
+				function back() {
+					window.location.href = "login.html";
+				}
+				function gointo() {
+					var username=document.getElementById("id").value;
+					var password=document.getElementById("password").value;
+					var invitcode=document.getElementById("invitcode").value;
+					socket = io.connect('ws://' + document.domain + ':' + location.port + '/wsregister', {
+						reconnectionDelayMax: 10000,
+						query : {
+							"invitecode": invitcode,
+							"username": username,
+							"password": password
+					}	
+					});
+					//socket.emit("clint", test_msg)//用于客服端发送请求服务器端
+					socket.on("reply", (from_server)=>{//用于接收服务器发送客服端
+						console.log(from_server)
+						if (from_server=="deny") {
+							alert("邀请码错误！")
+						} else {
+							window.location.href = encodeURI('./templates/login.html?uname=1');
+						}
+					})
+				}
+			</script>
+		</div>
+	</div>
+</body>
+</html>
