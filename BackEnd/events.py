@@ -1,6 +1,7 @@
 
 from flask import session, request
 from flask_socketio import emit, join_room, leave_room, disconnect
+from numpy import broadcast
 from .objects import CM_server, clearmind_socketio, cookie_user_dict, DISCONNECT_TIME, user_cookie, gen_cookie
 import time
 import json
@@ -65,10 +66,11 @@ def register_disconnect():
 
 @clearmind_socketio.on('connect', namespace='/wsmine')
 def mine_connect():
-    print('扫雷连接成功')
+    print('>>>>>>>>扫雷连接成功')
     try:
         judge = False
         cookie = request.args['cookie']
+        username = ''
         if cookie in cookie_user_dict:
             username, tm = cookie_user_dict[cookie]
             if time.time() - tm < DISCONNECT_TIME:
@@ -78,6 +80,7 @@ def mine_connect():
                 del cookie_user_dict[cookie]
         if not judge: 
             raise Exception('身份无效')
+        CM_server.give_color(username)
         emit('args', json.dumps(CM_server.args()))
         emit('history', json.dumps(CM_server.history()))
     except :
@@ -97,17 +100,19 @@ def mine_disconnect():
 
 @clearmind_socketio.on('click', namespace='/wsmine')
 def mine_click(info):
+    print('>>>>> clicked')
     if CM_server.ready() == False: return
     cookie = request.args['cookie']
     data = json.loads(info)
     x, y = data['x'], data['y']
     # username = data['username']
     username, tm = cookie_user_dict[cookie]
-    if time.time() - tm < DISCONNECT_TIME:
-        return False
+    # if time.time() - tm < DISCONNECT_TIME:
+    #     return False
     print(x, y, username)
     snd, color, finish, timmer = CM_server.click(x, y, username)
     if snd:
+        print(str(snd), color, str(finish), str(timmer))
         emit('broadcast', json.dumps({'x' : x, 'y' : y, 'color' : color, 'timmer' : timmer}), broadcast = True)
     if finish:
         CM_server.restart()

@@ -29,6 +29,7 @@ class Server:
 
     def click(self, x : int , y : int, username : str) -> Tuple[bool, str, bool, int]:
         color_number = self.__CM.get_user_color_num(username)
+        print(str(color_number) + '<<<<<<<<<<<<<<<<<<<<<<')
         color_string = self.__CM.get_user_color_str(color_number)
         click_status = self.__CM.click(x, y, color_number)
         finish = self.__CM.judge_win()
@@ -60,3 +61,6 @@ class Server:
 
     def ready(self):
         return time.time() > self.__ready
+
+    def give_color(self, username : str) -> None:
+        self.__CM.give_color(username)

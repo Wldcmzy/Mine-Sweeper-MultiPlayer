@@ -1,4 +1,4 @@
-!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -51,13 +51,13 @@
         var m = 2;
 
         //启动函数
-        function start() {
-            init(30, 30, 1437, 33554393, 16, 48);
+        function start(row, col, seed, mod, size, mine_num) {
+            init(row, col, seed, mod, size, mine_num);
             get_mine();
             setMine();
         }
 
-        start();
+        //start(30, 30, 1437, 33554393, 16, 48);
 
         //设置所画圆角矩形的宽度，圆角半径与间距
         function set_from(weight, radius, dis) {
@@ -82,7 +82,7 @@
                 for (let j = 0; j < DEFAULT_COL_SZIE; j++) {
                     let xy = j + '-' + i;
                     g_arr.push(xy);
-                    g_obj[xy] = { mark: 0, open: 0, init: 0, time: 999999 };
+                    g_obj[xy] = { mark: 0, open: 0, init: 0, time: 9999999999 };
                     drawBlock(xy, g_color.block);
                 }
             }
@@ -183,7 +183,7 @@
         }
 
         //辅助显示函数，方便调试，正式使用时请注释
-        showInfo();
+
         function showInfo() {
             g_arr.forEach(n => {
                 if (g_obj[n].mark == -1) {
@@ -244,26 +244,29 @@
             let x = ~~(ev.offsetX / w);
             let y = ~~(ev.offsetY / w);
             let xy = x + '-' + y;
+            if (g_arr.includes(xy) && g_obj[xy].open == 0)
+                sendmessage(xy);
             if (g_obj[xy].open == 0)
                 count--;
             g_obj[xy].open = 1;
             //改变格子状态
-            drawBlock(xy, g_color.open);
+            // drawBlock(xy, g_color.open);
             markText(xy, g_obj[xy].mark);
             //如果为0则dfs，为雷则炸
-            if (g_obj[xy].mark == 0) {
+            if (g_obj[xy].mark == 0 && g_obj[xy].open == 1) {
                 dfszero(xy);
             } else if (g_obj[xy].mark == -1) {
                 count--;
                 mine_count--;
-                drawBlock(xy, g_color.mine);
+                //drawBlock(xy, g_color.mine);
                 markText(xy, mine[0]);
                 markText(xy, mine[3]);
                 alert("雷炸了！！！！！");
+            } else {
+                dfsunzero(xy);
             }
+            //dfstime(xy, '#0000C6', 1);
             console.log(x, y);
-            if (g_arr.includes(xy))
-                sendmessage(xy);
             //检查是否结束
             checkOver();
         }
@@ -275,10 +278,22 @@
                 if (g_obj[n].open == 0) {
                     count--;
                     g_obj[n].open = 1;
-                    drawBlock(n, g_color.open);
+                    //drawBlock(n, g_color.open);
                     markText(n, g_obj[n].mark);
                     if (g_obj[n].mark == 0)
                         dfszero(n);
+                }
+            })
+        }
+
+        function dfsunzero(xy) {
+            let around = getAround(xy);
+            around.forEach(n => {
+                if (g_obj[n].open == 0 && g_obj[n].mark == 0) {
+                    count--;
+                    g_obj[n].open = 1;
+                    markText(n, g_obj[n].mark);
+                    dfszero(n);
                 }
             })
         }
@@ -294,59 +309,135 @@
         }
 
         //根据时间戳进行上色
-        function dfstime(revx, revy, revcolor, revtimmer) {
-            
+        function dfstime(xy, revcolor, revtimmer) {
+            let around = getAround(xy);
+            if (g_obj[xy].open == 1 && g_obj[xy].time > revtimmer) {
+                g_obj[xy].color = 1;
+                g_obj[xy].time = revtimmer;
+                drawBlock(xy, revcolor);
+                markText(xy, g_obj[xy].mark);
+                if (g_obj[xy].mark == -1) {
+                    markText(xy, mine[0]);
+                    markText(xy, mine[3]);
+                    return;
+                }
+            }
+            around.forEach(n => {
+                if (g_obj[n].open == 1 && g_obj[n].time > revtimmer) {
+                    drawBlock(n, revcolor);
+                    markText(n, g_obj[n].mark);
+                    g_obj[n].color = 1;
+                    g_obj[n].time = revtimmer;
+                    if (g_obj[n].mark == -1) {
+                        markText(n, mine[0]);
+                        markText(n, mine[3]);
+                    }
+                    dfstime(n, revcolor, revtimmer);
+                }
+            })
+        }
+
+        function dfshistory(xy, revcolor) {
+            if (g_obj[xy].mark == 0) {
+                drawBlock(xy, revcolor);
+                markText(xy, g_obj[xy].mark);
+                let around = getAround(xy);
+                around.forEach(n => {
+                    if (g_obj[n].open == 0) {
+                        g_obj[n].open = 1;
+                        drawBlock(n, revcolor);
+                        markText(n, g_obj[n].mark);
+                        if (g_obj[n].mark == 0)
+                            dfshistory(n);
+                    }
+                })
+            } else if (g_obj[xy].mark == -1) {
+                drawBlock(xy, revcolor);
+                markText(xy, mine[0]);
+                markText(xy, mine[3]);
+                g_obj[xy].open = 1;
+            } else {
+                drawBlock(xy, revcolor);
+                markText(xy, g_obj[xy].mark);
+                g_obj[xy].open = 1;
+            }
         }
 
     </script>
 
-    <script src={{ url_for('static', filename = 'socket.io.js') }}></script>
+    <script src={{ url_for('static', filename='socket.io.js' ) }}></script>
     <script>
         //接受登陆界面cookie
         var this_cookie = decodeURI(document.URL);
         this_cookie = this_cookie.slice(this_cookie.indexOf("=") + 1);
-        alert(this_cookie);
-
+        socket = io.connect('ws://' + document.domain + ':' + location.port + '/wsmine', {
+            reconnectionDelayMax: 10000,
+            query: {
+                "cookie": this_cookie
+            }
+        });
         //初始化，建立连接，接收服务器的种子
+        revseed()
         function revseed() {
-            socket = io.connect('ws://' + document.domain + ':' + location.port + '/mine', {
-                reconnectionDelayMax: 10000,
-            });
-            socket.on("args", (seed) => {//用于接收服务器发送客服端
-                var new_row=seed.row;
-                var new_col=seed.col;
-                var new_partsize=seed.partsize;
-                var new_mine=seed.mine;
-                var new_mod=seed.mod;
-                var new_seed=seed.seed;
+            socket.on("args", (seedmsg) => {//用于接收服务器发送客服端
+                let seed = JSON.parse(seedmsg);
+                let new_row = seed.row;
+                let new_col = seed.col;
+                let new_partsize = seed.partsize;
+                let new_mine = seed.mine;
+                let new_mod = seed.mod;
+                let new_seed = seed.seed;
+                console.log(seed);
+                start(new_row, new_col, new_seed, new_mod, new_partsize, new_mine);
+                showInfo();
             })
         }
+
+        socket.on("history", (revhistory) => {
+            console.log(revhistory);
+            let obj=[];
+            obj = JSON.parse(revhistory);
+            let rows = obj.length
+            for (let i = 0; i < rows; i++) {
+                console.log(obj[i].x)
+                console.log(obj[i].y)
+                console.log(obj[i].color)
+                let xy = `${obj.y}-${obj.x}`;
+                dfshistory(xy, obj.color);
+            }
+        })
 
         //构造坐标信息(x,y,cookie)
         function sendmessage(xy) {
             let [x, y] = xy.split('-').map(n => n * 1);
-            socket = io.connect('ws://' + document.domain + ':' + location.port + '/mine', {
-                reconnectionDelayMax: 10000,
-            });
-            var test = {
-                "x": x,
-                "y": y,
-                "cookie": this_cookie
-            };
-            var test_msg = JSON.stringify(test);
-            socket.emit("clint", test_msg)//用于客服端发送请求服务器端
-        }  
+            let sendxy = JSON.stringify({ "x": y, "y": x, "cookie": this_cookie })
+            socket.emit('click', sendxy)
+        }
+
         //接收服务器广播信息
-        socket = io.connect('ws://' + document.domain + ':' + location.port + '/mine', {
-            reconnectionDelayMax: 10000,
-        });
-        socket.on("boardcast", (revbroad) => {//用于接收服务器发送客服端
-            var msg = JSON.parse(revbroad);
-            var revx = msg.x;
-            var revy = msg.y;
-            var revcolor = msg.color;
-            var revtimmer = msg.timmer;
-            dfstime(revx, revy, revcolor, revtimmer);
+        socket.on("broadcast", (revbroad) => {//用于接收服务器发送客服端
+            let msg = JSON.parse(revbroad);
+            let revx = msg.y;
+            let revy = msg.x;
+            let revcolor = msg.color;
+            let revtimmer = msg.timmer;
+            let xy = `${revx}-${revy}`;
+            console.log(msg);
+            g_obj[xy].open = 1;
+            markText(xy, g_obj[xy].mark);
+            //如果为0则dfs，为雷则炸
+            if (g_obj[xy].mark == 0 && g_obj[xy].open == 1) {
+                dfszero(xy);
+            } else if (g_obj[xy].mark == -1) {
+                count--;
+                mine_count--;
+                //drawBlock(xy, g_color.mine);
+                markText(xy, mine[0]);
+                markText(xy, mine[3]);
+            } else {
+                dfsunzero(xy);
+            }
+            dfstime(xy, revcolor, revtimmer);
         })
     </script>
 </body>
