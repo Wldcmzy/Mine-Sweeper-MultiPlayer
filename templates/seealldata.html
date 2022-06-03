@@ -2,7 +2,55 @@
 
 <head>
     <style>
-
+        table{margin:auto;}
+        th {
+            order: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+            background-color: #4CAF50;
+            color: white;
+        }
+        td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+        tr:nth-child(even){
+            background-color: #c6ffc6;
+        }
+        tr:hover {
+            background-color: #ddd;
+        }
+        .text-effect{
+            color: #fff;
+            font-family: 'Monoton', cursive;
+            font-size: 40px;
+            font-weight: 700;
+            text-transform: uppercase;
+            text-align: center;
+            margin: 0 auto;
+            display: block;
+            position: relative;
+        }
+        .text-effect span{ animation: animate linear 2000ms infinite; }
+        .text-effect span:nth-child(1n){ animation-delay: 0s; }
+        .text-effect span:nth-child(2n){ animation-delay: 100ms; }
+        .text-effect span:nth-child(3n){ animation-delay: 200ms; }
+        .text-effect span:nth-child(4n){ animation-delay: 300ms; }
+        .text-effect span:nth-child(5n){ animation-delay: 400ms; }
+        .text-effect span:nth-child(6n){ animation-delay: 500ms; }
+        .text-effect span:nth-child(7n){ animation-delay: 600ms; }
+        .text-effect span:nth-child(8n){ animation-delay: 700ms; }
+        .text-effect span:nth-child(9n){ animation-delay: 800ms; }
+        .text-effect span:nth-child(10n){ animation-delay: 900ms; }
+        @keyframes animate{
+            0%{ opacity: 0.3; }
+            100%{
+            opacity:1;
+            text-shadow: 0 0 80px Red,0 0 30px orange,0 0 6px DarkRed;
+            }
+        }
+    
     </style>
 </head>
 
@@ -13,8 +61,8 @@
     <div class="contextmenu">
         <table>
             <thead>
-                <div>
-                    <font size="6">扫雷总榜</font>
+                <div class="text-effect">
+                    <span>扫雷总榜</span>
                 </div>
             </thead>
             <thead>
@@ -26,6 +74,7 @@
                 </tr>
             </thead>
             <tbody>
+               
             </tbody>
         </table>
         <script>
