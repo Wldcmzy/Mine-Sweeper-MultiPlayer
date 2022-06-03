@@ -1,6 +1,6 @@
 
 from .clearmine import ClearMine
-from typing import Tuple, Optional
+from typing import Dict, List, Tuple, Optional
 from .databaseOperator import sqlOperator
 from typing import Tuple
 import threading
@@ -18,20 +18,31 @@ class Server:
 
 
     def login(self, username : str, password : str) -> bool:
+        '''用于用户登录时,判断收到的账号密码是否匹配'''
         data = self.__SQL.select_by_user(username)
         if data == None: return False
         return password == data['passwd']
 
     
-    def register(self, code : str, username : str, password : str) -> bool:
-        return self.__SQL.register(code, username, password)
+    def register(self, invitecode : str, username : str, password : str) -> Optional[bool]:
+        '''用于用户注册'''
+
+        # 防止用户将script脚本进行sql注入
+        if '<script>' in username.lower().replace(' ', '').replace('\t', ''): return None
+
+        return self.__SQL.register(invitecode, username, password)
 
 
     def click(self, x : int , y : int, username : str) -> Tuple[bool, str, bool, int]:
+        '''
+        收到用户点击消息时执行, 返回值为:
+        1.是否是有效点击 2.颜色 3.游戏是否结束 4.本次点击的时间戳
+        '''
         color_number = self.__CM.get_user_color_num(username)
-        print(str(color_number) + '<<<<<<<<<<<<<<<<<<<<<<')
         color_string = self.__CM.get_user_color_str(color_number)
-        click_status = self.__CM.click(x, y, color_number)
+
+        click_status = self.__CM.click(x, y, username)
+
         finish = self.__CM.judge_win()
 
         bool_ret = False
@@ -46,21 +57,35 @@ class Server:
 
         return bool_ret, color_string, finish, self.__CM.get_timmer()
 
-    def timmer(self):
+    def timmer(self) -> int:
+        '''从扫雷对象中那到时间戳并返回'''
         return self.__CM.get_timmer()
 
-    def history(self):
+    def history(self) -> List[Tuple[int ,int, str]]:
+        '''从扫雷对象中那到本局历史点击记录并返回'''
         return self.__CM.get_click_history()
 
-    def args(self):
+    def args(self) -> dict:
+        '''从扫雷对象中拿到本局地图参数并返回'''
         return self.__CM.get_args()
 
-    def restart(self):
+    def restart(self, waittime = -5) -> None:
+        '''游戏需要重启时调用, 若需要等一会才进入下一局, 填写waittime表示等待时长, 小于0不等待'''
+        self.__ready = time.time() + waittime
         self.__CM.restart(True)
-        self.__ready = time.time()
 
-    def ready(self):
+    def ready(self) -> None:
+        '''判断游戏是否可以进行'''
         return time.time() > self.__ready
 
     def give_color(self, username : str) -> None:
+        '''为没有颜色的用户尽量随机分配一个不同的颜色'''
         self.__CM.give_color(username)
+
+    def rank(self) -> dict:
+        '''获取本局战绩'''
+        return self.__CM.get_rank()
+
+    def total_rank(self) -> List[dict]:
+        '''查询历史积累战绩'''
+        return self.__SQL.get_totalRank_data()

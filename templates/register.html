@@ -53,8 +53,8 @@
 </head>
 <body>
 <!--<script type="text/javascript" src={{ url_for('static', filename = 'socket.io.js') }}></script> -->
-<script type="text/javascript" src='socket.io.js'></script>
-	<img src="./qwe.jpg" alt="">
+<script type="text/javascript" src={{ url_for('static', filename='socket.io.js' ) }}></script>
+	<img src={{ url_for('static', filename="qweh.PNG" ) }} alt="">
 	<div class="entity">
 
 		<span class="title"><font size="5"><b>注册登录</b></font></span>
@@ -76,7 +76,7 @@
 			<button onclick="gointo()">注册账号</button>
 			<script>
 				function back() {
-					window.location.href = "login.html";
+					window.location.href = '/';
 				}
 				function gointo() {
 					var username=document.getElementById("id").value;
@@ -96,7 +96,7 @@
 						if (from_server=="deny") {
 							alert("邀请码错误！")
 						} else {
-							window.location.href = encodeURI('./templates/login.html?uname=1');
+							window.location.href = encodeURI('/');
 						}
 					})
 				}

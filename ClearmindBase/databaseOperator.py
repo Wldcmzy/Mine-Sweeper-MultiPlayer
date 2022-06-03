@@ -2,7 +2,7 @@ from random import randint
 import pymysql
 #from soupsieve import select
 from .config import HOST, USER, PASSWORD, DATABASE
-from typing import Optional
+from typing import Dict, Optional, List
 class sqlOperator:
     def __init__(self, host = HOST, user = USER, password = PASSWORD, database = DATABASE):
         self.__host = host
@@ -144,6 +144,7 @@ class sqlOperator:
             return ret
 
     def add_invite_code(self, number: int) -> None:
+        '''批量增加邀请码'''
         sql = 'select userID uid, invitationCode code from invitation'
         row = self.__cursor.execute(sql)
         datas = self.__cursor.fetchall()
@@ -158,11 +159,13 @@ class sqlOperator:
         self.__connection.commit()
 
     def select_by_user(self, username : str) -> Optional[dict]:
+        '''根据用户名查询匹配者的所有信息'''
         sql = f'select * from userInfo where username = \'{username}\''
         self.__cursor.execute(sql)
         return self.__cursor.fetchone()
 
     def register(self, invitecode : str, username : str, password : str) -> bool:
+        '''用户注册'''
 
         # 检查重名
         if self.select_by_user(username) != None: return False
@@ -181,7 +184,15 @@ class sqlOperator:
         self.update_invitation_ifUsed(invitecode, 1)
         return True
 
+    def get_totalRank_data(self) -> Optional[List[dict]]:
+        '''查询总榜(所有用户)信息'''
+
+        sql = 'select username, clearCount, boomCount from userInfo'
+        self.__cursor.execute(sql)
+        return self.__cursor.fetchall()
+
     def test_select(self):
+        '''测试使用, 无实际用途'''
         sql = 'select userID uid, invitationCode code from invitation'
         row = self.__cursor.execute(sql)
         return self.__cursor.fetchall()

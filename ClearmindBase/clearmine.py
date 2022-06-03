@@ -51,7 +51,7 @@ class ClearMine:
 
     def restart(self, change_game = False) -> None:
         '''重置游戏数据, 若参数change_game为True, 更换游戏种子'''
-        start_time = time.time()
+        func_start_time = time.time()
 
         # 统计真实雷数
         self.__real_mine_num = 0
@@ -59,8 +59,9 @@ class ClearMine:
         # 时间戳
         self.__timmer = 0
 
-        # 点击历史
+        # 点击历史 和 本局战绩
         self.__click_history = []
+        self.__rank = {}
 
         # 随机颜色生成器, 用户编号
         self.__ColorRander = ColorRander()
@@ -81,7 +82,7 @@ class ClearMine:
         self.__safe = 0 
         self.__safe_target = self.__size_row * self.__size_col - self.__real_mine_num
 
-        print(f'Game restarted, use time: {time.time() - start_time}s')
+        print(f'Game restarted, use time: {time.time() - func_start_time}s')
 
     def cfg(self, new_row : int, new_col : int, new_mine_num : int) -> None:
         '''改变雷区大小、雷数等基础配置'''
@@ -172,6 +173,7 @@ class ClearMine:
             self.__color[x][y] = color
             self.__safe += 1
             self.__score_counter += 1
+            print(f'open ({x}, {y})  color_number:{color}')
         else:
             return None
 
@@ -188,7 +190,7 @@ class ClearMine:
                 if self.__color[xx][yy] == 0 and self.__board[xx][yy] == 0: 
                     self.__updateMask(xx, yy, color, False)
 
-    def click(self, x : int, y : int, color : int) -> int:
+    def click(self, x : int, y : int, username : str) -> int:
         '''
         用户点击事件, 正数代表得分, 负数代表一些问题:
         -5: 越界, -2: 格子已经被扫开 -1: 点到雷
@@ -196,15 +198,27 @@ class ClearMine:
         if not self.__judgeEdge(x, y): return -5 # 越界
         if self.__color[x][y] != 0: return -2   # 格子已经被扫开
 
+        color = self.__dict_user2number[username]
+
         self.__click_history.append((x, y, self.get_user_color_str(color)))
         self.__timmer += 1
 
+        if username not in self.__rank:
+            self.__rank[username] = {
+                'boom' : 0, 
+                'score' : 0,
+                'color' : self.__dict_number2color[color],
+                'username' : username,
+            }
+
         if self.__board[x][y] == ClearMine.MINE: # 点到雷
             self.__color[x][y] = color
+            self.__rank[username]['boom'] += 1
             return -1
 
         self.__score_counter = 0
         self.__updateMask(x, y, color)
+        self.__rank[username]['score'] += self.__score_counter
 
         return self.__score_counter
 
@@ -228,7 +242,7 @@ class ClearMine:
         if color_id not in self.__dict_number2color: return None
         return self.__dict_number2color[color_id]
 
-    def get_click_history(self) -> List[Tuple[int, int]]:
+    def get_click_history(self) -> List[Tuple[int, int, str]]:
         '''返回点击历史'''
         return self.__click_history
 
@@ -237,6 +251,7 @@ class ClearMine:
         return self.__timmer
 
     def get_args(self) -> dict:
+        '''获取游戏地图参数'''
         return {
             'row' : self.__size_row,
             'col' : self.__size_col,
@@ -245,6 +260,10 @@ class ClearMine:
             'mod' : self.__mod,
             'seed' : self.__seed,
         }
+
+    def get_rank(self) -> dict:
+        '''获取本局战绩'''
+        return self.__rank
 
 if __name__ == '__main__':
     pass

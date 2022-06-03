@@ -4,6 +4,44 @@
 <head>
     <meta charset="utf-8" />
     <title>MineGame</title>
+    <style>
+        ul {
+            list-style: none;
+        }
+
+        a {
+            text-decoration: none;
+            color: #333;
+        }
+
+        .contextmenu {
+            width: 250px;
+            border: 1px solid #999;
+            box-shadow: 3px 3px 3px #ccc;
+            background-color: #fff;
+            position: absolute;
+            top: 10px;
+            left: 15px;
+            display: none;
+            z-index: 9999999
+        }
+
+        .contextmenu li {
+            height: 40px;
+            line-height: 40px;
+        }
+
+        .contextmenu li a {
+            display: block;
+            padding: 0 100px;
+        }
+
+        .contextmenu li a:hover {
+            background-color: #ccc;
+            font-weight: bold;
+            color: #fff;
+        }
+    </style>
 </head>
 
 <body>
@@ -34,15 +72,11 @@
          * ******************************************************/
         var g_obj = {};
         //颜色数据,记录了雷，格子等应用什么颜色
-        var g_color = { block: '#369', mine: '#bbb', open: '#ddd', highlight: '#89f' };
+        var g_color = { block: '#CCDDFF', mine: '#bbb', open: '#ddd', highlight: '#89f' };
         //图标数据，利用字符图标在格子上填充信息
         var mine = ['💣', '🚩', '❔', '💥'];
         //记录雷的数组，记录了所有是雷的坐标
         var mine_arr = [];
-        //全部的格子数
-        var count;
-        //是雷的格子数
-        var mine_count;
         //每个格子的宽度
         var w = 30;
         //圆角矩形的圆角半径
@@ -75,8 +109,11 @@
             DEFAULT_PART_SIZE = size;
             DEFAULT_PART_MINE_NUM = mine_num;
             DEFAULT_DELTA = seed;
-            count = row * col;
-            mine_count = 0;
+            fib1 = 1;
+            fib2 = 2;
+            g_arr = [];
+            mine_arr = [];
+
             //循环生成坐标信息，并在canvas中画出
             for (let i = 0; i < DEFAULT_ROW_SIZE; i++) {
                 for (let j = 0; j < DEFAULT_COL_SZIE; j++) {
@@ -111,7 +148,6 @@
                     let cnt = 0;
                     let num = currow * curcol * DEFAULT_PART_MINE_NUM;
                     num = ~~(num / (DEFAULT_PART_SIZE * DEFAULT_PART_SIZE));
-                    mine_count += num;
                     //生成子块内部雷编号
                     for (let k = i; k < i + currow; k++) {
                         for (let l = j; l < j + curcol; l++) {
@@ -147,7 +183,6 @@
 
         //获得生成雷算法中要交换的坐标
         function get_change(row, col, i, j, kl) {
-
             //迭代斐波那契数组
             let temp = fib1;
             fib1 = fib2;
@@ -183,7 +218,6 @@
         }
 
         //辅助显示函数，方便调试，正式使用时请注释
-
         function showInfo() {
             g_arr.forEach(n => {
                 if (g_obj[n].mark == -1) {
@@ -200,7 +234,7 @@
             let [x, y] = xy.split('-').map(n => n * w);
             ctx.save();
             ctx.font = '15px Arial';
-            ctx.fillStyle = '#fff';
+            ctx.fillStyle = '#FFF';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.fillText(txt, x + w / 2, y + w / 2);
@@ -238,37 +272,55 @@
 
         //为画布增加监听事件
         canv.addEventListener('click', openBlock);
+        //为画布增加右键点击菜单事件
+        canv.addEventListener("contextmenu", kda);
         //监听函数
         function openBlock(ev) {
             //获得 x与y坐标
             let x = ~~(ev.offsetX / w);
             let y = ~~(ev.offsetY / w);
             let xy = x + '-' + y;
+            //点击时关闭菜单页面
+            closeMenu();
+            //点击一次时先将格子打开之后再复颜色
             if (g_arr.includes(xy) && g_obj[xy].open == 0)
                 sendmessage(xy);
-            if (g_obj[xy].open == 0)
-                count--;
-            g_obj[xy].open = 1;
-            //改变格子状态
-            // drawBlock(xy, g_color.open);
-            markText(xy, g_obj[xy].mark);
-            //如果为0则dfs，为雷则炸
-            if (g_obj[xy].mark == 0 && g_obj[xy].open == 1) {
+            if (g_obj[xy].mark == 0 && g_obj[xy].open == 0) {
+                g_obj[xy].open = 1;
+                markText(xy, g_obj[xy].mark);
                 dfszero(xy);
-            } else if (g_obj[xy].mark == -1) {
-                count--;
-                mine_count--;
-                //drawBlock(xy, g_color.mine);
+            } else if (g_obj[xy].mark == -1 && g_obj[xy].open == 0) {
+                g_obj[xy].open = 1;
                 markText(xy, mine[0]);
                 markText(xy, mine[3]);
-                alert("雷炸了！！！！！");
-            } else {
+            } else if (g_obj[xy].open == 0) {
+                g_obj[xy].open = 1;
+                markText(xy, g_obj[xy].mark);
                 dfsunzero(xy);
             }
-            //dfstime(xy, '#0000C6', 1);
             console.log(x, y);
-            //检查是否结束
-            checkOver();
+        }
+
+        function kda(ev) {
+            socket.emit("rank", "query rank")//收取排行榜信息
+            ev.preventDefault();
+            let e = ev;
+            let contextmenu = document.getElementById("context");
+            // 获取菜单，让菜单显示出来
+            let context = document.getElementById("context");
+            context.style.display = "block";
+            //  让菜单随着鼠标的移动而移动
+            //  获取鼠标的坐标
+            let x = e.clientX;
+            let y = e.clientY;
+
+            //  调整宽度和高度
+            context.style.left = x - 200 + "px" //Math.min(w-202,x)+"px";
+            context.style.top = y + "px" //Math.min(h-230,y)+"px";
+
+            // return false可以关闭系统默认菜单
+            return false;
+
         }
 
         //对于0的dfs
@@ -276,9 +328,7 @@
             let around = getAround(xy);
             around.forEach(n => {
                 if (g_obj[n].open == 0) {
-                    count--;
                     g_obj[n].open = 1;
-                    //drawBlock(n, g_color.open);
                     markText(n, g_obj[n].mark);
                     if (g_obj[n].mark == 0)
                         dfszero(n);
@@ -290,7 +340,6 @@
             let around = getAround(xy);
             around.forEach(n => {
                 if (g_obj[n].open == 0 && g_obj[n].mark == 0) {
-                    count--;
                     g_obj[n].open = 1;
                     markText(n, g_obj[n].mark);
                     dfszero(n);
@@ -298,68 +347,72 @@
             })
         }
 
-        //检查是否结束函数，如果剩下的格子全是雷则结束
-        function checkOver() {
-            let over = 0;
-            if (count == mine_count) {
-                over = 1;
-                alert("胜利！！");
-            }
-            return over;
-        }
-
-        //根据时间戳进行上色
-        function dfstime(xy, revcolor, revtimmer) {
+        function dfs_color_zero(xy, revcolor, timmer) {
             let around = getAround(xy);
-            if (g_obj[xy].open == 1 && g_obj[xy].time > revtimmer) {
-                g_obj[xy].color = 1;
-                g_obj[xy].time = revtimmer;
-                drawBlock(xy, revcolor);
-                markText(xy, g_obj[xy].mark);
-                if (g_obj[xy].mark == -1) {
-                    markText(xy, mine[0]);
-                    markText(xy, mine[3]);
-                    return;
-                }
-            }
             around.forEach(n => {
-                if (g_obj[n].open == 1 && g_obj[n].time > revtimmer) {
+                if (g_obj[n].time > timmer) {
+                    g_obj[n].time = timmer;
                     drawBlock(n, revcolor);
                     markText(n, g_obj[n].mark);
-                    g_obj[n].color = 1;
-                    g_obj[n].time = revtimmer;
-                    if (g_obj[n].mark == -1) {
-                        markText(n, mine[0]);
-                        markText(n, mine[3]);
-                    }
-                    dfstime(n, revcolor, revtimmer);
+                    if (g_obj[n].mark == 0)
+                        dfs_color_zero(n, revcolor, timmer);
                 }
             })
         }
 
-        function dfshistory(xy, revcolor) {
+        function dfs_color_unzero(xy, revcolor, timmer) {
+            let around = getAround(xy);
+            around.forEach(n => {
+                if (g_obj[n].time > timmer && g_obj[n].mark == 0) {
+                    g_obj[n].time = timmer;
+                    drawBlock(n, revcolor);
+                    markText(n, g_obj[n].mark);
+                    dfs_color_zero(n, revcolor, timmer);
+                }
+            })
+        }
+
+        function dfshistoryzero(xy, revcolor, timmer) {
+            let around = getAround(xy);
+            around.forEach(n => {
+                if (g_obj[n].open == 0) {
+                    g_obj[n].open = 1;
+                    g_obj[n].time = timmer;
+                    drawBlock(n, revcolor);
+                    markText(n, g_obj[n].mark);
+                    if (g_obj[n].mark == 0)
+                        dfshistoryzero(n, revcolor, timmer);
+                }
+            })
+        }
+
+
+        function dfshistoryunzero(xy, revcolor, timmer) {
+            let around = getAround(xy);
+            around.forEach(n => {
+                if (g_obj[n].open == 0 && g_obj[n].mark == 0) {
+                    g_obj[n].open = 1;
+                    g_obj[n].time = timmer;
+                    drawBlock(n, revcolor);
+                    markText(n, g_obj[n].mark);
+                    dfshistoryzero(n, revcolor, timmer);
+                }
+            })
+        }
+
+        function dfshistory(xy, revcolor, timmer) {
             if (g_obj[xy].mark == 0) {
                 drawBlock(xy, revcolor);
                 markText(xy, g_obj[xy].mark);
-                let around = getAround(xy);
-                around.forEach(n => {
-                    if (g_obj[n].open == 0) {
-                        g_obj[n].open = 1;
-                        drawBlock(n, revcolor);
-                        markText(n, g_obj[n].mark);
-                        if (g_obj[n].mark == 0)
-                            dfshistory(n);
-                    }
-                })
+                dfshistoryzero(xy, revcolor, timmer);
             } else if (g_obj[xy].mark == -1) {
                 drawBlock(xy, revcolor);
                 markText(xy, mine[0]);
                 markText(xy, mine[3]);
-                g_obj[xy].open = 1;
             } else {
                 drawBlock(xy, revcolor);
                 markText(xy, g_obj[xy].mark);
-                g_obj[xy].open = 1;
+                dfshistoryunzero(xy, revcolor, timmer);
             }
         }
 
@@ -368,6 +421,7 @@
     <script src={{ url_for('static', filename='socket.io.js' ) }}></script>
     <script>
         //接受登陆界面cookie
+
         var this_cookie = decodeURI(document.URL);
         this_cookie = this_cookie.slice(this_cookie.indexOf("=") + 1);
         socket = io.connect('ws://' + document.domain + ':' + location.port + '/wsmine', {
@@ -375,7 +429,13 @@
             query: {
                 "cookie": this_cookie
             }
-        });
+
+
+        }
+        );
+        socket.on("connect", (revconnect) => {
+            alert("地图生成时间可能较长，请稍等！\n\n扫雷时请不要快速点击，服务器承受不住！");
+        })
         //初始化，建立连接，接收服务器的种子
         revseed()
         function revseed() {
@@ -389,21 +449,87 @@
                 let new_seed = seed.seed;
                 console.log(seed);
                 start(new_row, new_col, new_seed, new_mod, new_partsize, new_mine);
-                showInfo();
+                //showInfo();
             })
         }
 
         socket.on("history", (revhistory) => {
             console.log(revhistory);
-            let obj=[];
+            let obj = [];
             obj = JSON.parse(revhistory);
             let rows = obj.length
             for (let i = 0; i < rows; i++) {
-                console.log(obj[i].x)
-                console.log(obj[i].y)
-                console.log(obj[i].color)
-                let xy = `${obj.y}-${obj.x}`;
-                dfshistory(xy, obj.color);
+                console.log(obj[i][0])
+                console.log(obj[i][1])
+                console.log(obj[i][2])
+                let xy = `${obj[i][1]}-${obj[i][0]}`;
+                dfshistory(xy, obj[i][2], i + 1);
+            }
+        })
+        socket.on("rank_rev", (revrank) => {//用于接收服务器发送客服端
+            let rev_rank = JSON.parse(revrank);
+            //console.log("asasas")
+            //console.log(revrank)
+            let tbody = document.querySelector('tbody');
+            let child = tbody.childNodes;
+            for (let i = child.length - 1; i >= 0; i--) {
+                tbody.removeChild(child[i]);
+            }
+            /*创建学生信息数组*/
+            let datas = [];
+            let sortdata = [];
+            let index = [];
+            let j = 0;
+            //console.log("收到的"+rev_rank)
+            for (let key in rev_rank) {
+                datas[j] = {
+                    name: rev_rank[key].username,
+                    boom: rev_rank[key].boom,
+                    color: rev_rank[key].color,
+                    score: rev_rank[key].score,
+                    kd: 0
+                };
+                //console.log(datas[j]);
+                j++;
+            }
+            //console.log(datas.length);
+            for (let i = 0; i < datas.length; i++) {
+                if (datas[i].boom == 0) datas[i].kd = datas[i].score
+                else datas[i].kd = datas[i].score / datas[i].boom
+                sortdata[i] = datas[i].kd;
+                index[i] = [i];
+            }
+            for (let m = 0; m < sortdata.length; m++) {
+                for (let n = 0; n < sortdata.length; n++) {
+                    if (m != n && sortdata[n] < sortdata[m]) {
+                        let tmp = sortdata[n];
+                        sortdata[n] = sortdata[m];
+                        sortdata[m] = tmp;
+                        let tmp_index = index[n];
+                        index[n] = index[m];
+                        index[m] = tmp_index;
+                    }
+                }
+            }
+            for (let i = 0; i < datas.length; i++) {
+                let tr = document.createElement('tr');
+                tbody.appendChild(tr); //创建行
+                let cur_color = datas[index[i]].color;
+                console.log(cur_color);
+                for (let k in datas[index[i]]) {
+                    if (k == "color")
+                        continue;
+                    let td = document.createElement('td');
+                    if (k == "kd") {
+                        td.innerHTML = datas[index[i]][k].toFixed(2);
+                        tr.appendChild(td); //创建列
+                        tr.style.background = cur_color;
+                        continue
+                    }
+                    td.innerHTML = datas[index[i]][k];
+                    tr.appendChild(td); //创建列
+                    tr.style.background = cur_color;
+                }
             }
         })
 
@@ -413,7 +539,9 @@
             let sendxy = JSON.stringify({ "x": y, "y": x, "cookie": this_cookie })
             socket.emit('click', sendxy)
         }
-
+        socket.on("game end", (revend) => {//用于接收服务器发送客服端
+            alert("本局游戏结束！");
+        });
         //接收服务器广播信息
         socket.on("broadcast", (revbroad) => {//用于接收服务器发送客服端
             let msg = JSON.parse(revbroad);
@@ -422,24 +550,79 @@
             let revcolor = msg.color;
             let revtimmer = msg.timmer;
             let xy = `${revx}-${revy}`;
+            //let revnsername = 
             console.log(msg);
-            g_obj[xy].open = 1;
-            markText(xy, g_obj[xy].mark);
-            //如果为0则dfs，为雷则炸
-            if (g_obj[xy].mark == 0 && g_obj[xy].open == 1) {
+
+            if (g_obj[xy].mark == 0 && g_obj[xy].open == 0) {
+                g_obj[xy].open = 1;
+                markText(xy, g_obj[xy].mark);
                 dfszero(xy);
-            } else if (g_obj[xy].mark == -1) {
-                count--;
-                mine_count--;
-                //drawBlock(xy, g_color.mine);
+            } else if (g_obj[xy].mark == -1 && g_obj[xy].open == 0) {
+                g_obj[xy].open = 1;
                 markText(xy, mine[0]);
                 markText(xy, mine[3]);
-            } else {
+            } else if (g_obj[xy].open == 0) {
+                g_obj[xy].open = 1;
+                markText(xy, g_obj[xy].mark);
                 dfsunzero(xy);
             }
-            dfstime(xy, revcolor, revtimmer);
+
+            if (g_obj[xy].mark == 0 && g_obj[xy].time > revtimmer) {
+                g_obj[xy].time = revtimmer;
+                drawBlock(xy, revcolor);
+                markText(xy, g_obj[xy].mark);
+                dfs_color_zero(xy, revcolor, revtimmer);
+            } else if (g_obj[xy].mark == -1 && g_obj[xy].time > revtimmer) {
+                g_obj[xy].time = revtimmer;
+                drawBlock(xy, revcolor);
+                markText(xy, mine[0]);
+                markText(xy, mine[3]);
+            } else if (g_obj[xy].time > revtimmer) {
+                g_obj[xy].time = revtimmer;
+                drawBlock(xy, revcolor);
+                markText(xy, g_obj[xy].mark);
+                dfs_color_unzero(xy, revcolor, revtimmer);
+            }
         })
+
     </script>
+
+    <div class="contextmenu" id="context">
+        <table>
+            <thead>
+                <div>
+                    <a href="" target="_blank" id="totallink"><font color="blue">查看总榜</font></a>
+                </div>
+            </thead>
+            <thead>
+                本局扫雷排行榜&nbsp;&nbsp;&nbsp;
+            </thead>
+            <thead>
+                <tr>
+                    <th>用户名&nbsp;&nbsp;</th>
+                    <th>坑壁值</th>
+                    <th>开荒数</th>
+                    <th>K/D</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        var totalranklink='/seealldata?uname='+this_cookie;
+        document.getElementById("totallink").href = totalranklink;
+        function closeMenu() {
+            let contextmenu = document.getElementById("context");
+            contextmenu.style.display = "none";
+        }
+    </script>
+    <script>
+        
+    </script>
+
+
 </body>
 
 </html>
