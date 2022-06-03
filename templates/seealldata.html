@@ -1,12 +1,14 @@
 <html>
 
 <head>
+    <style>
 
+    </style>
 </head>
 
 <body>
     <script src={{ url_for('static', filename='socket.io.js' ) }}></script>
-    
+
     <button id="login_bnt" onclick=send_inf()>刷新榜单</button>
     <div class="contextmenu">
         <table>
@@ -18,9 +20,9 @@
             <thead>
                 <tr>
                     <th>用户名&nbsp;&nbsp;</th>
-                    <th>坑壁值</th>
-                    <th>开荒数</th>
-                    <th>K/D</th>
+                    <th>开荒总数</th>
+                    <th>总坑壁值</th>
+                    <th>总 K/D</th>
                 </tr>
             </thead>
             <tbody>
@@ -30,82 +32,78 @@
             //接收saolei查看总榜界面的cookie
             var name = decodeURI(document.URL);
             name = name.slice(name.indexOf("=") + 1);
-            alert(name);
-
             socket = io.connect('ws://' + document.domain + ':' + location.port + '/wsrank', {
                 reconnectionDelayMax: 10000,
                 query: {
                     "cookie": name
                 }
             })
-            socket.on("connect",function conn_inf(){
-                alert("test")
+            socket.on("connect", function conn_inf() {
                 socket.emit("total_rank", "query rank")
             })
-            function send_inf(){
-                alert("new_test")
+            function send_inf() {
                 socket.emit("total_rank", "query rank")
             }
-            
+
             //接收数据库里的总榜信息
             socket.on("total_rank", (revallrank) => {
 
                 let rev_rank = JSON.parse(revallrank);
 
-                console.log(rev_rank)
                 let tbody = document.querySelector('tbody');
                 let child = tbody.childNodes;
                 for (let i = child.length - 1; i >= 0; i--) {
                     tbody.removeChild(child[i]);
                 }
-                //循环遍历字典数组
 
-                for (let qwe = 0; qwe < rev_rank.length; qwer++) {
-                    /*创建信息数组*/
-                    let datas = [];
-                    let sortdata = [];
-                    let index = [];
-                    let j = 0;
-                    for (let key in rev_rank[qwe]) {
-                        datas[j] = {
-                            name: rev_rank[key].username,
-                            boom: rev_rank[key].boom,
-                            score: rev_rank[key].score,
-                            kd: 0
-                        };
-                        j++;
+                /*创建信息数组*/
+                let datas = [];
+                let sortdata = [];
+                let index = [];
+                for (let i = 0; i < rev_rank.length; i++) {
+                    if (rev_rank[i].boomCount == 0)
+                        rev_rank[i].kd = rev_rank[i].clearCount
+                    else {
+                        rev_rank[i].kd = rev_rank[i].clearCount / rev_rank[i].boomCount;
                     }
-                    for (let i = 0; i < datas.length; i++) {
-                        if (datas[i].boom == 0) datas[i].kd = datas[i].score
-                        else datas[i].kd = datas[i].score / datas[i].boom
-                        sortdata[i] = datas[i].kd;
-                        index[i] = [i];
-                    }
-                    for (let m = 0; m < sortdata.length; m++) {
-                        for (let n = 0; n < sortdata.length; n++) {
-                            if (m != n && sortdata[n] < sortdata[m]) {
-                                let tmp = sortdata[n];
-                                sortdata[n] = sortdata[m];
-                                sortdata[m] = tmp;
-                                let tmp_index = index[n];
-                                index[n] = index[m];
-                                index[m] = tmp_index;
-                            }
+                }
+
+                for (let key = 0; key < rev_rank.length; key++) {
+                    datas[key] = {
+                        name: rev_rank[key].username,
+                        clearCount: rev_rank[key].clearCount,
+                        boomCount: rev_rank[key].boomCount,
+                        kd: rev_rank[key].kd
+                    };
+                    index[key] = key;
+                    sortdata[key] = rev_rank[key].kd;
+                }
+
+                for (let m = 0; m < sortdata.length; m++) {
+                    for (let n = 0; n < sortdata.length; n++) {
+                        if (m != n && sortdata[n] < sortdata[m]) {
+                            let tmp = sortdata[n];
+                            sortdata[n] = sortdata[m];
+                            sortdata[m] = tmp;
+                            let tmp_index = index[n];
+                            index[n] = index[m];
+                            index[m] = tmp_index;
                         }
                     }
-                    for (let i = 0; i < datas.length; i++) {
-                        let tr = document.createElement('tr');
-                        tbody.appendChild(tr); //创建行
-                        for (let k in datas[index[i]]) {
-                            let td = document.createElement('td');
-                            if (k == "kd") {
-                                td.innerHTML = datas[index[i]][k].toFixed(2);
-                                tr.appendChild(td); //创建列
-                                continue
-                            }
-                            td.innerHTML = datas[index[i]][k];
+                }
+
+                for (let i = 0; i < datas.length; i++) {
+                    let tr = document.createElement('tr');
+                    tbody.appendChild(tr); //创建行
+                    for (let k in datas[index[i]]) {
+                        let td = document.createElement('td');
+                        if (k == "kd") {
+                            td.innerHTML = datas[index[i]][k].toFixed(2);
                             tr.appendChild(td); //创建列
+                            continue
                         }
+                        td.innerHTML = datas[index[i]][k];
+                        tr.appendChild(td); //创建列
                     }
                 }
             })

@@ -1,4 +1,4 @@
-from ClearmindBase.dababaseOperator import sqlOperator
+from ClearmindBase.databaseOperator import sqlOperator
 
 a = sqlOperator()
 
