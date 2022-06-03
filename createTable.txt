@@ -11,10 +11,14 @@ create table userInfo(
 	ifOnline INT,  
 	clearCount INT, 
 	boomCount INT, 
-	FOREIGN KEY (userID) REFERENCES invitation (userID) 
+	FOREIGN KEY (userID) REFERENCES invitation (userID)
+		on delete cascade
+		on update cascade
 );
 
 grant all privileges on table invitation to cm@localhost;
 grant all privileges on table userInfo to cm@localhost;
 
+drop table userInfo;
+drop table invitation;
 
