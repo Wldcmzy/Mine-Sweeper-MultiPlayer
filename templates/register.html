@@ -95,7 +95,10 @@
 						console.log(from_server)
 						if (from_server=="deny") {
 							alert("邀请码错误！")
-						} else {
+						} else if(from_server=="script"){
+							
+							alert("你有病?")
+						}else {
 							window.location.href = encodeURI('/');
 						}
 					})

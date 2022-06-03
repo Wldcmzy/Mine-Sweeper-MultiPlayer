@@ -68,7 +68,7 @@ def login_connect():
         register_ret = CM_server.register(invitecode, username, password)
         if register_ret == True:
             emit('reply', 'ok')
-        elif register_ret is None:
+        elif register_ret == None:
             emit('reply', 'script')
         else:
             emit('reply', 'deny')
@@ -90,7 +90,6 @@ def mine_connect():
         judge = False
         cookie = request.args['cookie']
         username = ''
-        print('2')
         if cookie in cookie_user_dict:
             username, tm = cookie_user_dict[cookie]
             if time.time() - tm < DISCONNECT_TIME:
@@ -100,7 +99,6 @@ def mine_connect():
                 del cookie_user_dict[cookie]
         if not judge: 
             raise Exception('身份过期')
-        print('1')
         emit('args', json.dumps(CM_server.args()))
         emit('history', json.dumps(CM_server.history()))
     except Exception as e:
@@ -158,9 +156,10 @@ def mine_click(info):
         emit('broadcast finish', 'finish', broadcast = True)
         # 可能在架构原理上存在一些问题, 暂时不开启一局结束后等待一段时间的功能
         # CM_server.restart(SERVER_WAIT_TIME)
+        single_game_end_rank = CM_server.rank()
         CM_server.restart()
         while not CM_server.ready(): pass
-        emit('game end', '', broadcast = True)
+        emit('game end', json.dumps(single_game_end_rank), broadcast = True)
         emit('args', json.dumps(CM_server.args()), broadcast = True)
 
 
@@ -206,8 +205,6 @@ def get_total_rank(info):
             return False
 
         cookie_user_dict[cookie] = (username, time.time())
-        ttt = CM_server.total_rank()
-        print('send...' + str(ttt))
-        emit('total_rank', json.dumps(ttt))
+        emit('total_rank', json.dumps(CM_server.total_rank()))
     except Exception as e:
         print(type(e), str(e))
