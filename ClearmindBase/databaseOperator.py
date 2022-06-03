@@ -158,6 +158,11 @@ class sqlOperator:
             self.__cursor.execute(sql, (row, code))
         self.__connection.commit()
 
+    def get_invite_code(self) -> None:
+        sql = 'select userID uid, invitationCode code from invitation where ifUsed = 0 order by uid'
+        self.__cursor.execute(sql)
+        return self.__cursor.fetchall()
+
     def select_by_user(self, username : str) -> Optional[dict]:
         '''根据用户名查询匹配者的所有信息'''
         sql = f'select * from userInfo where username = \'{username}\''
