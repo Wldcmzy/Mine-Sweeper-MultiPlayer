@@ -6,6 +6,7 @@ from typing import Tuple
 import threading
 import json
 import time
+import re
 
 class Server:
     def __init__(self) -> None:
@@ -28,7 +29,8 @@ class Server:
         '''用于用户注册'''
 
         # 防止用户将script脚本进行sql注入
-        if '<script>' in username.lower().replace(' ', '').replace('\t', ''): return None
+        test_text = re.sub(r'\s', '', username.lower()) 
+        if r'<script>' in test_text or r'</script>' in test_text: return None
 
         return self.__SQL.register(invitecode, username, password)
 
