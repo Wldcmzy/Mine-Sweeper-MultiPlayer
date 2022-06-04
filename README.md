@@ -10,9 +10,9 @@
 
 ## 实现方式
 
-flask框架 + websocket传输数据
+html+css+javascript前端 + flask后端框架 + websocket传输数据
 
-## 运行方式
+## 开服步骤
 
 1. 在数据库中建好表，搞好权限(本项目没有写自动创建)。
 2. 在ClearmindBase.config.py 中设置好配置信息。
