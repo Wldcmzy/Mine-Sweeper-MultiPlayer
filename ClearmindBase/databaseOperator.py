@@ -152,6 +152,7 @@ class sqlOperator:
         for _ in range(number):
             row += 1
             code = str(row)
+            if len(code) < 5: code = '0' * (5 - len(code)) + code
             for __ in range(5):
                 code += '-' + str(randint(spanl, spanr))
             sql = 'insert into invitation values (%s, %s, 0);'
