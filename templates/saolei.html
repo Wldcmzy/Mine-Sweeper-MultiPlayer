@@ -288,8 +288,10 @@
             context.style.display = "block";
             //  让菜单随着鼠标的移动而移动
             //  获取鼠标的坐标
-            let x = e.clientX;
-            let y = e.clientY;
+            // let x = e.clientX;
+            // let y = e.clientY;
+            let x = e.offsetX;
+            let y = e.offsetY;
 
             //  调整宽度和高度
             context.style.left = x - 200 + "px" //Math.min(w-202,x)+"px";

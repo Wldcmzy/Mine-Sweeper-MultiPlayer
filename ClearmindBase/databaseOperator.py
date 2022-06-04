@@ -159,7 +159,7 @@ class sqlOperator:
         self.__connection.commit()
 
     def get_invite_code(self) -> None:
-        sql = 'select userID uid, invitationCode code from invitation where ifUsed = 0 order by uid'
+        sql = 'select invitationCode code from invitation where ifUsed = 0 order by code'
         self.__cursor.execute(sql)
         return self.__cursor.fetchall()
 

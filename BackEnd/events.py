@@ -70,7 +70,7 @@ def login_disconnect():
 
 
 @clearmind_socketio.on('connect', namespace='/wsregister')
-def login_connect():
+def register_connect():
     '''
     收到注册请求后, 进行注册操作, 并发送事务结果
     回复报文:

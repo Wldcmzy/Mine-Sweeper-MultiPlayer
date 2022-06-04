@@ -20,4 +20,4 @@ while True:
         print('ok')
     elif op == 2:
         for each in a.get_invite_code():
-            print(each)
+            print(each['code'])
