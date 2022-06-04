@@ -1,4 +1,8 @@
-# 在线多人扫雷后端
+# 网页版在线多人扫雷
+
+## 简介
+
+这是一个小的课程设计，缺点挺多的，各位看官轻喷。
 
 ## 说明
 
@@ -14,9 +18,19 @@ html+css+javascript前端 + flask后端框架 + websocket传输数据
 
 ## 开服步骤
 
-1. 在数据库中建好表，搞好权限(本项目没有写自动创建)。
+1. 根据databasecode.txt文件，在数据库中建好表，搞好权限(本项目没有写自动创建)。
 2. 在ClearmindBase.config.py 中设置好配置信息。
 3. 在main.py中设置端口号并直接运行脚本开启游戏。
+
+## 开发人员
+
+前端(凯爷无敌)：[Wkzlike (github.com)](https://github.com/Wkzlike)
+
+前端(R老师是最正义的!)： [StarWYMM (github.com)](https://github.com/StarWYMM)
+
+后端(臭鱼烂虾): [Wldcmzy (github.com)](https://github.com/Wldcmzy)
+
+后端兼各类软件文档(什么神仙)：[xxinyux (github.com)](https://github.com/xxinyux)
 
 ## 额外说明
 
