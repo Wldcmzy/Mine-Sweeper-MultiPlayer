@@ -34,6 +34,10 @@ html+css+javascript前端 + flask后端框架 + websocket传输数据
 
 后端兼各类软件文档(什么神仙)：[xxinyux (github.com)](https://github.com/xxinyux)
 
+## 效果图
+
+![效果图](README/效果图.png)
+
 ## 额外说明
 
 **仅供学习使用**
