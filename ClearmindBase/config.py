@@ -1,3 +1,4 @@
+'''雷区默认配置'''
 DEFAULT_ROW_SIZE = 75
 DEFAULT_COL_SIZE = 75
 DEFAULT_SEED = 1437341
@@ -6,6 +7,7 @@ DEFAULT_PART_SIZE = 16
 DEFAULT_PART_MINE_NUM = 48
 
 
+'''数据库配置'''
 HOST = '127.0.0.1'
 USER = 'cm'
 PASSWORD = 'clearmind'

@@ -15,8 +15,8 @@ user_cookie: Dict[str, str] = {}
 DISCONNECT_TIME = 300
 
 # 等待时间
-# 1000 x 1000 大概需要10秒左右,  一般地图大小使用300 x 300 足够
-SERVER_WAIT_TIME = 10
+# 地图的创建, 1000 x 1000 大概需要10秒左右,  一般地图大小使用300 x 300 足够
+SERVER_WAIT_TIME = 20 # 搁置 
 
 
 CM_server = Server()
