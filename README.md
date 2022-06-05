@@ -12,6 +12,8 @@
 
 3.网站安全性较低，也请知道网址的的用户不要通过脚本注入、sql注入或其他各种方式攻击我们。
 
+4.大部分JavaScript代码和Css代码内置于HTML文件中，所有显示HTML文件占比很高。
+
 ## 实现方式
 
 html+css+javascript前端 + flask后端框架 + websocket传输数据
