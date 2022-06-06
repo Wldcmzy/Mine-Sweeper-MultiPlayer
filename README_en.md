@@ -1,5 +1,7 @@
 # Web Multiplayer Minesweeper
 
+[中文](./README.md) | **English**
+
 ## Introduction
 
 ​	A small Curriculum Design with low quality.
