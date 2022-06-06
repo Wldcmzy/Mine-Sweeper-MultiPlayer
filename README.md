@@ -29,6 +29,10 @@ html+css+javascript前端 + flask后端框架 + websocket传输数据
 
 ~~flask-login文档没搞明白，就胡搞了一个身份验证逻辑~~
 
+## 后端结构
+
+![后端结构图](README/后端结构图.png)
+
 ## 开服步骤
 
 1. 根据databasecode.txt文件，在数据库中建好表，搞好权限(本项目没有写自动创建)。

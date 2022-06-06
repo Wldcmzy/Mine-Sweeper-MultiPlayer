@@ -2,7 +2,7 @@
 
 [中文](./README.md) | **English**
 
-Not good at English, this document maybe difficult to understand.
+The writer not good at English, this document maybe difficult to understand.
 
 ## Introduction
 
@@ -30,6 +30,10 @@ Not good at English, this document maybe difficult to understand.
 html+css+javascript for client + python-flask for server + websocket for data transmission
 
 ~~Identity Authentication isn't good because of the lack of grasp of flask-login~~
+
+## Server Structure
+
+![后端结构图](README_en/后端结构图.png)
 
 ## Steps to turn on the game server
 
