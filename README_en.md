@@ -38,8 +38,8 @@ html+css+javascript for client + python-flask for server + websocket for data tr
 ## Game Mechanics
 
 1. register(need invitation code), login。
-2. Left key down for sweep mine, right key down for see the rank of one game, there's no operation for make flag.
-3. When one game finished, a pop-up-window appears, which contains final rank of this game, and a new game start. 
+2. Left key down for sweeping mine, right key down for seeing the rank of one game, there's no operation for make flag.
+3. When one game finished, a pop-up-window appears, which contains the final rank of this game, and a new game start immediately. 
 4. Hyperlink of total rank is found at right key menu.
 5. Old Identity Authentication Code of a player will be discarded if (s)he has gone for a long time or (s)he repeat login. 
 
