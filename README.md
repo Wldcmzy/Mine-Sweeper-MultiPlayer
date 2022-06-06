@@ -40,6 +40,8 @@ html+css+javascript前端 + flask后端框架 + websocket传输数据
 
 ![效果图](README/效果图.png)
 
+![总榜效果图](README/总榜效果图.png)
+
 ## 可以预见的可扩展功能
 
 ​	1.数据库userInfo表中ifOnline属性设置但并未使用，后期可以改名作为“该用户是否被注销的标志位”
