@@ -35,6 +35,10 @@ html+css+javascript for client + python-flask for server + websocket for data tr
 
 ![后端结构图](README_en/后端结构图.png)
 
+## Core Algorithm  Analysis
+
+Link:[分类: 网页版多人扫雷 | 蓝湖畔淅淅沥沥的雨 (wldcmzy.github.io)](https://wldcmzy.github.io/categories/课程设计/网页版多人扫雷/)
+
 ## Steps to turn on the game server
 
 1. Create tables and give privileges to a roll, according to file databasecode.txt (this project hasn't code to autocreate a database).

@@ -33,6 +33,10 @@ html+css+javascript前端 + flask后端框架 + websocket传输数据
 
 ![后端结构图](README/后端结构图.png)
 
+## 核心算法分析
+
+传送门：[分类: 网页版多人扫雷 | 蓝湖畔淅淅沥沥的雨 (wldcmzy.github.io)](https://wldcmzy.github.io/categories/课程设计/网页版多人扫雷/)
+
 ## 开服步骤
 
 1. 根据databasecode.txt文件，在数据库中建好表，搞好权限(本项目没有写自动创建)。
