@@ -2,6 +2,8 @@
 
 [中文](./README.md) | **English**
 
+Not good at English, this document maybe difficult to understand.
+
 ## Introduction
 
 ​	A small Curriculum Design with low quality.
