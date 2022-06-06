@@ -1,0 +1,61 @@
+# Web Multiplayer Minesweeper
+
+## Introduction
+
+​	A small Curriculum Design with low quality.
+
+## Explain
+
+1. Our ECS has low bandwidth，so we need to take method that occupy low bandwidth to achieve this game.
+2. IP address of our server exposed at the public network is not we want, and player can only get an account by using Invitation code.
+3. Website has low security，please not attack us by SQL injection or any other methods.
+4. HTML code takes high percentage because almost JavaScript and Css code were writen at HTML file.
+
+## Developer
+
+​	Client：[Wkzlike (github.com)](https://github.com/Wkzlike)
+
+​	Client： [StarWYMM (github.com)](https://github.com/StarWYMM)
+
+​	Server: [Wldcmzy (github.com)](https://github.com/Wldcmzy)
+
+​	Server and almost Software documentation：[xxinyux (github.com)](https://github.com/xxinyux)
+
+## Implementation Method
+
+html+css+javascript for client + python-flask for server + websocket for data transmission
+
+~~Identity Authentication isn't good because of the lack of grasp of flask-login~~
+
+## Steps to turn on the game server
+
+1. Create tables and give privileges to a roll, according to file databasecode.txt (this project hasn't code to autocreate a database).
+2. Set configuration at ClearmindBase.config.py
+3. Set port at main.py execute it to turn on the game server.
+
+## Game Mechanics
+
+1. register(need invitation code), login。
+2. Left key down for sweep mine, right key down for see the rank of one game, there's no operation for make flag.
+3. When one game finished, a pop-up-window appears, which contains final rank of this game, and a new game start. 
+4. Hyperlink of total rank is found at right key menu.
+5. Old Identity Authentication Code of a player will be discarded if (s)he has gone for a long time or (s)he repeat login. 
+
+## Demonstration
+
+![效果图](README/效果图.png)
+
+<img src="README/总榜效果图.png" alt="总榜效果图" style="zoom:67%;" />
+
+## Predictable scalability
+
+​	1.Attribute ifOnline of table userInfo is not used，which can be rename to cancellation indicate if an account is canceled.
+
+## Extra
+
+**This project only for study**
+
+**We don't accept any donations**
+
+There's nothing to say(
+
