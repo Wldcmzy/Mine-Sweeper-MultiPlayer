@@ -11,9 +11,9 @@ The writer not good at English, this document maybe difficult to understand.
 ## Explain
 
 1. Our ECS has low bandwidth，so we need to take method that occupy low bandwidth to achieve this game.
-2. IP address of our server exposed at the public network is not we want, and player can only get an account by using Invitation code.
-3. Website has low security，please not attack us by SQL injection or any other methods.
-4. HTML code takes high percentage because almost JavaScript and Css code were writen at HTML file.
+2. IP address of our server exposed at the public network is not we want. Player can only get an account by using Invitation code.
+3. Website has low security，please don't attack us by SQL injection or any other methods.
+4. HTML code takes high percentage because almost JavaScript and Css code were written at HTML file.
 
 ## Developer
 
@@ -42,7 +42,7 @@ Link:[分类: 网页版多人扫雷 | 蓝湖畔淅淅沥沥的雨 (wldcmzy.githu
 ## Steps to turn on the game server
 
 1. Create tables and give privileges to a roll, according to file databasecode.txt (this project hasn't code to autocreate a database).
-2. Set configuration at ClearmindBase.config.py
+2. Set configuration at ClearmindBase/config.py
 3. Set port at main.py execute it to turn on the game server.
 
 ## Game Mechanics
@@ -61,7 +61,7 @@ Link:[分类: 网页版多人扫雷 | 蓝湖畔淅淅沥沥的雨 (wldcmzy.githu
 
 ## Predictable scalability
 
-​	1.Attribute ifOnline of table userInfo is not used，which can be rename to cancellation indicate if an account is canceled.
+​	1.Attribute ifOnline of table userInfo is not used，which can be renamed to "cancellation" indicate if an account is canceled.
 
 ## Extra
 
